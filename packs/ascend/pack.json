@@ -1,0 +1,27 @@
+{
+  "id": "ascend",
+  "product": "Offset Irtiqa",
+  "edition": "",
+  "framework": "SAMA Cyber Security Framework",
+  "frameworkShort": "SAMA CSF",
+  "source": "Numbering follows the SAMA Cyber Security Framework (version 1.0, May 2017, as in force on rulebook.sama.gov.sa): domains 3.1 to 3.4, their 32 subdomains, and one control per numbered control consideration, so control 3.1.1.4 is consideration 4 of subdomain 3.1.1. Subdomain 3.3.12 is the exception: SAMA does not number its considerations, so its three items follow the subdomain's principle and the SARIE and Mada references it gives. Domain and subdomain names are SAMA's; control titles and all guidance wording are original to Offset Security. Read the framework itself at rulebook.sama.gov.sa.",
+  "disclaimer": "Offset Irtiqa is not affiliated with, endorsed by, or certified by the Saudi Central Bank (SAMA).",
+  "contact": "info@offsetsecurity.net",
+  "features": {
+    "maturity": true,
+    "priorities": true,
+    "journey": true,
+    "ismsRegisters": true,
+    "policyTemplates": true,
+    "calendar": true,
+    "help": true,
+    "demoData": true
+  },
+  "themeLabel": "Domain",
+  "itemLabel": "Control",
+  "counts": {
+    "domains": 4,
+    "subdomains": 32,
+    "controls": 136
+  }
+}

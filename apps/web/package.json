@@ -1,0 +1,18 @@
+{
+  "name": "@offset/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node build/esbuild.mjs --watch",
+    "build": "node build/esbuild.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  },
+  "dependencies": {
+    "htm": "^3.1.1",
+    "preact": "^10.24.3"
+  }
+}

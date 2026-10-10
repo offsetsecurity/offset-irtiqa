@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    // Inside outDir on purpose. tsc keeps incremental state here and skips
+    // emitting anything it believes is current; if that file outlives a deleted
+    // dist, the next build produces .d.ts files and no JavaScript, and the
+    // failure appears far away as a missing module at start-up. Keeping it in
+    // dist means deleting dist always resets the state with it.
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules", "test"]
+}

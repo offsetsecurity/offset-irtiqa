@@ -1,0 +1,66 @@
+# What must never reach a build context.
+#
+# The Dockerfile does `COPY . .`, so anything not excluded here is copied into
+# an image layer and stays there even if a later step deletes it. The first
+# three entries are the ones that matter: a .env carries the session secret and
+# the field encryption key, and an image built with those inside is an image
+# that must never be shared.
+
+# Docker matches these against the path from the context root, so a bare
+# ".env" would leave deploy/docker/.env sitting in the build context. The
+# **/ forms are the ones doing the work.
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/env.example
+*.pem
+**/*.pem
+*.key
+**/*.key
+license.key
+**/license.key
+
+# Local state. Never wanted in an image, and copying it makes builds slow.
+node_modules
+**/node_modules
+.pnpm-store
+dist
+apps/api/dist
+apps/api/data
+apps/api/.tmp
+apps/api/logs
+apps/api/backups
+apps/api/evidence
+data
+logs
+backups
+evidence
+.local
+
+# History and tooling.
+.git
+.gitignore
+.github
+.vscode
+.idea
+*.log
+
+# Documentation and deployment scripts: none of it runs in the container.
+docs
+deploy/windows
+*.md
+!README.md
+
+# Test output.
+coverage
+
+# TypeScript's incremental build state. This one is not housekeeping: with
+# `incremental: true`, a .tsbuildinfo copied in from the host tells tsc the
+# build is already done, so it emits no JavaScript and the image ends up with
+# a dist folder full of .d.ts files and nothing to run. The **/ form matters
+# because the file lives at apps/api/tsconfig.tsbuildinfo, and Docker matches
+# patterns against the whole path rather than the basename.
+*.tsbuildinfo
+**/*.tsbuildinfo

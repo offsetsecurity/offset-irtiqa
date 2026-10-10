@@ -1,0 +1,175 @@
+{
+  "note": "Starting points, not finished documents. Fill them in here, have them approved, then record each in Policies. The control numbers are SAMA's; every word is ours.",
+  "documents": [
+    {
+      "file": "01_Cyber_Security_Governance_and_Committee_Charter.docx",
+      "title": "Cyber Security Governance and Committee Charter",
+      "about": "How cyber security is directed and controlled: the board, the committee, the CISO and the cyber security function."
+    },
+    {
+      "file": "02_Cyber_Security_Strategy.docx",
+      "title": "Cyber Security Strategy",
+      "about": "Why cyber security matters, where the organisation wants to be, and the initiatives that will take it there."
+    },
+    {
+      "file": "03_Cyber_Security_Policy.docx",
+      "title": "Cyber Security Policy",
+      "about": "The organisation's commitment to cyber security, its objectives, and the rules everyone follows."
+    },
+    {
+      "file": "04_Cyber_Security_Roles_and_Responsibilities.docx",
+      "title": "Cyber Security Roles and Responsibilities",
+      "about": "Who is responsible for what in cyber security, how the CISO is appointed, and what goes into job descriptions."
+    },
+    {
+      "file": "05_Cyber_Security_in_Project_Management.docx",
+      "title": "Cyber Security in Project Management",
+      "about": "How security is built into every project, from start to finish."
+    },
+    {
+      "file": "06_Cyber_Security_Awareness_Programme.docx",
+      "title": "Cyber Security Awareness Programme",
+      "about": "How staff, third parties and customers are made aware of cyber security, and how that is measured."
+    },
+    {
+      "file": "07_Cyber_Security_Training_Plan.docx",
+      "title": "Cyber Security Training Plan",
+      "about": "What training each group of people needs, how it is recorded and how it is checked."
+    },
+    {
+      "file": "08_Cyber_Security_Risk_Management_Process.docx",
+      "title": "Cyber Security Risk Management Process",
+      "about": "How cyber security risks are found, rated, treated and monitored, and the risk appetite set by the board."
+    },
+    {
+      "file": "09_Regulatory_Compliance_Process_and_Register.docx",
+      "title": "Regulatory Compliance Process and Register",
+      "about": "How regulations and mandatory standards are found, communicated and complied with, and the register that records them."
+    },
+    {
+      "file": "10_Cyber_Security_Review_and_Penetration_Testing.docx",
+      "title": "Cyber Security Review and Penetration Testing",
+      "about": "How critical assets and internet-facing services are reviewed and penetration tested, and how findings are followed up."
+    },
+    {
+      "file": "11_Cyber_Security_Audit_Plan.docx",
+      "title": "Cyber Security Audit Plan",
+      "about": "How independent cyber security audits are planned, carried out and followed up."
+    },
+    {
+      "file": "12_Human_Resources_Cyber_Security.docx",
+      "title": "Human Resources Cyber Security",
+      "about": "Security requirements for recruiting, employing, moving and releasing staff."
+    },
+    {
+      "file": "13_Physical_Security.docx",
+      "title": "Physical Security",
+      "about": "How facilities that host information assets are protected from unauthorised physical access."
+    },
+    {
+      "file": "14_Asset_Management.docx",
+      "title": "Asset Management",
+      "about": "One register of every information asset, with owners, classification and handling rules."
+    },
+    {
+      "file": "15_Cyber_Security_Architecture.docx",
+      "title": "Cyber Security Architecture",
+      "about": "The security capabilities the organisation needs and the principles for building security in."
+    },
+    {
+      "file": "16_Identity_and_Access_Management_Policy.docx",
+      "title": "Identity and Access Management Policy",
+      "about": "Who gets access to what, how it is requested, approved, reviewed and removed."
+    },
+    {
+      "file": "17_Application_Security_Standard.docx",
+      "title": "Application Security Standard and Secure Development",
+      "about": "Security rules for applications and the secure development life cycle."
+    },
+    {
+      "file": "18_Change_Management.docx",
+      "title": "Change Management",
+      "about": "How every change to information assets is assessed, tested, approved and reversed if needed."
+    },
+    {
+      "file": "19_Infrastructure_Security_Standard.docx",
+      "title": "Infrastructure Security Standard",
+      "about": "Security rules for servers, networks, endpoints and other infrastructure in all sites."
+    },
+    {
+      "file": "20_Cryptography_Standard.docx",
+      "title": "Cryptography Standard",
+      "about": "Approved encryption, when it must be used, and how keys are managed through their life."
+    },
+    {
+      "file": "21_Bring_Your_Own_Device_Standard.docx",
+      "title": "Bring Your Own Device (BYOD) Standard",
+      "about": "Rules for using personal devices for business information."
+    },
+    {
+      "file": "22_Secure_Disposal_of_Information_Assets.docx",
+      "title": "Secure Disposal of Information Assets",
+      "about": "How information assets are destroyed so that nothing can be recovered."
+    },
+    {
+      "file": "23_Payment_Systems_Security_Standard.docx",
+      "title": "Payment Systems Security Standard",
+      "about": "Security rules for the shared payment systems (SARIE and Mada). For banks and payment participants."
+    },
+    {
+      "file": "24_Electronic_Banking_Security_Standard.docx",
+      "title": "Electronic Banking Security Standard",
+      "about": "Security rules for online, mobile and phone banking, ATMs and notifications. For banks."
+    },
+    {
+      "file": "25_Cyber_Security_Event_Management_and_Monitoring.docx",
+      "title": "Cyber Security Event Management and Monitoring",
+      "about": "How security events are monitored, analysed and handled around the clock."
+    },
+    {
+      "file": "26_Cyber_Security_Incident_Management.docx",
+      "title": "Cyber Security Incident Management",
+      "about": "How incidents are classified, handled, reported to SAMA and learned from."
+    },
+    {
+      "file": "27_Threat_Intelligence_Management.docx",
+      "title": "Threat Intelligence Management",
+      "about": "How threats are collected, analysed, acted on and shared."
+    },
+    {
+      "file": "28_Vulnerability_Management.docx",
+      "title": "Vulnerability Management",
+      "about": "How vulnerabilities are found, classified, fixed within set times, and reported."
+    },
+    {
+      "file": "29_Contract_and_Vendor_Management.docx",
+      "title": "Contract and Vendor Management",
+      "about": "Security requirements before, during and at the end of a contract with a vendor."
+    },
+    {
+      "file": "30_Outsourcing_Policy.docx",
+      "title": "Outsourcing Policy",
+      "about": "Security requirements before, during and after outsourcing, including SAMA's approval."
+    },
+    {
+      "file": "31_Cloud_Computing_Policy.docx",
+      "title": "Cloud Computing Policy",
+      "about": "Security controls for hybrid and public cloud services, including SAMA's approval."
+    },
+    {
+      "file": "32_SAMA_Approvals_and_Reporting_Register.docx",
+      "title": "SAMA Approvals and Reporting Register",
+      "about": "What must be approved by SAMA before you act, and what must be reported to SAMA."
+    },
+    {
+      "file": "33_Cyber_Security_in_Business_Continuity.docx",
+      "title": "Cyber Security in Business Continuity",
+      "about": "How critical services are kept running or restored when a cyber security event strikes."
+    },
+    {
+      "file": "34_Acceptable_Use_of_Information_Assets.docx",
+      "title": "Acceptable Use of Information Assets",
+      "about": "The everyday rules for using the organisation's information, devices and systems."
+    }
+  ]
+}

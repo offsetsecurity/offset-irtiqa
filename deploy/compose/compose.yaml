@@ -1,0 +1,82 @@
+# Production stack — the bundle a customer runs on-premise.
+#
+# Air-gapped install:
+#   docker load < images.tar
+#   cp .env.example .env      # then edit
+#   docker compose up -d
+#
+# The database is a SQLite file on the `data` volume. There is no database
+# service to run, tune or patch — see docs/dev/adr/0002-sqlite-not-postgres.md.
+
+name: offset-grc
+
+x-common: &common
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "5" }
+
+# Both containers open the same database file, so they must agree on its path.
+x-db: &db
+  DATABASE_URL: file:/app/data/offset.db
+
+services:
+  proxy:
+    <<: *common
+    image: caddy:2-alpine
+    depends_on: [api]
+    ports:
+      - "${HTTPS_PORT:-8443}:443"
+      - "${HTTP_PORT:-8080}:80"
+    volumes:
+      - ../caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./certs:/certs:ro          # drop your own cert.pem / key.pem here
+    environment:
+      TLS_HOST: ${TLS_HOST:-localhost}
+
+  api:
+    <<: *common
+    image: ghcr.io/offsetsecurity/offset-${PRODUCT:-ascend}:${APP_VERSION:-latest}
+    env_file: [../../.env]
+    environment:
+      <<: *db
+      NODE_ENV: production
+      # The API is reachable only through Caddy on this network, so the
+      # private ranges it sits in are safe to believe "forwarded for" from.
+      TRUST_PROXY: "loopback,uniquelocal"
+    volumes:
+      - data:/app/data
+      - evidence:/app/evidence
+      - ./license.key:/app/license.key:ro
+    # Deliberately not scaled. One writer keeps SQLite simple and is ample at
+    # this size; scaling out means moving to a client/server database first.
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8080/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  worker:
+    <<: *common
+    image: ghcr.io/offsetsecurity/offset-${PRODUCT:-ascend}:${APP_VERSION:-latest}
+    command: ["node", "dist/worker.js"]
+    depends_on:
+      api: { condition: service_healthy }   # so migrations have run first
+    env_file: [../../.env]
+    environment:
+      <<: *db
+      NODE_ENV: production
+    volumes:
+      - data:/app/data
+      - evidence:/app/evidence
+      - backups:/app/backups
+
+volumes:
+  data:
+  evidence:
+  backups:
+  caddy_data:
+  caddy_config:

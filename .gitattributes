@@ -1,0 +1,17 @@
+# Normalise line endings. Shell scripts, Dockerfiles and the Caddyfile must stay
+# LF or they break inside Linux containers, even when authored on Windows.
+* text=auto eol=lf
+
+*.ps1   text eol=crlf
+*.psm1  text eol=crlf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+*.png   binary
+*.ico   binary
+*.pdf   binary
+*.tar   binary
+*.gz    binary
+
+pnpm-lock.yaml -diff linguist-generated=true
+packs/**/*.json linguist-generated=true

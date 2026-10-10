@@ -1,0 +1,159 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24.21.0"
+
+jobs:
+  quality:
+    name: Lint, typecheck, unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: corepack enable
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  integration:
+    name: API integration (real database)
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:./.ci/offset.db
+      # CI-only throwaway values. Production refuses to start without real ones.
+      SESSION_SECRET: "0000000000000000000000000000000000000000000000000000000000000000"
+      FIELD_ENC_KEY: "1111111111111111111111111111111111111111111111111111111111111111"
+      PRODUCT: ascend
+      # Turns on the end-to-end suite, which needs a real database. The suite
+      # opens its own file so a failed run leaves the migration check alone.
+      E2E_DATABASE_URL: file:./.ci/e2e.db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      # Migrations must apply cleanly from empty, and be idempotent on re-run.
+      - run: pnpm migrate
+      - run: pnpm migrate
+      - run: pnpm --filter @offset/api test
+
+  screens:
+    name: Screen tests (real browser)
+    runs-on: ubuntu-latest
+    env:
+      PRODUCT: ascend
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @offset/web build
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/screens
+      - run: npx playwright test
+        working-directory: apps/screens
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-test-results
+          path: apps/screens/test-results
+          retention-days: 7
+
+  build:
+    name: Build product images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [ascend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build ${{ matrix.product }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          build-args: |
+            PRODUCT=${{ matrix.product }}
+            APP_VERSION=${{ github.sha }}
+          push: false
+          load: true
+          tags: offset-${{ matrix.product }}:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test the image
+        run: |
+          docker run -d --name app \
+            -e SESSION_SECRET=$(openssl rand -hex 32) \
+            -e FIELD_ENC_KEY=$(openssl rand -hex 32) \
+            -e PRODUCT=${{ matrix.product }} \
+            -p 8080:8080 offset-${{ matrix.product }}:ci
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/api/v1/health >/dev/null; then echo "healthy"; exit 0; fi
+            sleep 2
+          done
+          echo "container never became healthy"; docker logs app; exit 1
+
+  security:
+    name: Security scans
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Secret scan
+        # The gitleaks *action* asks an organisation for a paid licence, and
+        # says so by failing. The tool is MIT, so run the binary: same scan,
+        # same rules, no licence. Pinned by version and checksum, because a
+        # secret scanner downloaded over the wire is a supply chain of one.
+        env:
+          VERSION: "8.30.1"
+          SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+        run: |
+          file="gitleaks_${VERSION}_linux_x64.tar.gz"
+          curl -sSfL -o "$file" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/${file}"
+          echo "${SHA256}  ${file}" | sha256sum --check --status
+          tar xzf "$file" gitleaks
+          ./gitleaks git . --no-banner --redact
+          rm -f gitleaks "$file"          # keep it out of the scan that follows
+      - name: Filesystem vulnerability scan
+        # Pinned to a commit, not a tag. The 0.24.0 tag this used to name was
+        # removed upstream, and the job then failed in three seconds at "Set up
+        # job" without scanning anything. A commit cannot be moved or deleted
+        # from under us, and for the tool that vets our dependencies, a tag
+        # somebody else can repoint is the wrong thing to trust.
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true

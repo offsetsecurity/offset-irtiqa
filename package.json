@@ -1,0 +1,40 @@
+{
+  "name": "offset-grc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offset Security GRC platform \u2014 Assure (ISO 27001), Align (NIST CSF 2.0), Anchor (NIST SP 800-53)",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "packageManager": "pnpm@9.12.3",
+  "pnpm": {
+    "neverBuiltDependencies": [
+      "better-sqlite3"
+    ],
+    "overrides": {
+      "brace-expansion@^5.0.0": "5.0.12",
+      "brace-expansion@^1.1.0": "1.1.21",
+      "nodemailer": "^10.0.16",
+      "source-map-js": "^1.2.2"
+    }
+  },
+  "scripts": {
+    "dev": "pnpm --filter @offset/api dev",
+    "dev:web": "pnpm --filter @offset/web dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "eslint . --ext .ts,.mjs",
+    "typecheck": "tsc -p apps/api/tsconfig.test.json && tsc -p apps/web/tsconfig.json",
+    "format": "prettier --write .",
+    "migrate": "pnpm --filter @offset/api migrate",
+    "seed": "pnpm --filter @offset/api seed",
+    "db:backup": "pnpm --filter @offset/api backup"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "eslint": "^9.9.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  }
+}

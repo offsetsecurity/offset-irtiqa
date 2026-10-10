@@ -1,0 +1,39 @@
+# Runs the failed parts of a build again, up to twice, before anyone has to look.
+#
+# Most reds on this repository were never the code. The tests pass on the
+# machine that made the change; what fails is a download, a package mirror or
+# a build server having a bad minute, and it passes if it is simply run again.
+# Somebody has to notice the red, open it, and press "Re-run failed jobs" -
+# times five products, on every release. This does the pressing.
+#
+# A real failure is not hidden by it. The same job fails all three times, the
+# run stays red, and the email GitHub sends says so. Nothing is published from
+# a run that did not pass: the publish job only runs when every job before it
+# has succeeded.
+#
+# This is a separate workflow, not a job in the one that failed, because GitHub
+# refuses to re-run a run that is still in progress, and a retry job inside it
+# would still be in progress when it asked.
+name: Retry
+
+on:
+  workflow_run:
+    workflows: [CI, Release]
+    types: [completed]
+
+permissions:
+  actions: write
+
+jobs:
+  retry:
+    name: Run the failed jobs again
+    # run_attempt starts at 1. Attempts 1 and 2 are retried; a third failure stands.
+    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.run_attempt < 3 }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-run only the jobs that failed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Run ${{ github.event.workflow_run.id }}, attempt ${{ github.event.workflow_run.run_attempt }}, failed: trying again."
+          gh run rerun ${{ github.event.workflow_run.id }} --failed --repo ${{ github.repository }}

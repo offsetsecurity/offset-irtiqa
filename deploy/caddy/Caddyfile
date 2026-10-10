@@ -1,0 +1,46 @@
+# TLS terminates here. On first boot Caddy issues an internal self-signed
+# certificate so the product works immediately with no internet access.
+# To use your own certificate, drop cert.pem and key.pem into deploy/compose/certs/
+# and swap the `tls` line below.
+
+{
+	admin off
+	auto_https disable_redirects
+}
+
+{$TLS_HOST}:443, :443 {
+	# Internal CA — replace with: tls /certs/cert.pem /certs/key.pem
+	tls internal
+
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		-Server
+	}
+
+	# Slow down credential stuffing before it reaches the app.
+	rate_limit {
+		zone login {
+			match {
+				path /api/v1/auth/login
+			}
+			key {remote_host}
+			events 10
+			window 1m
+		}
+	}
+
+	reverse_proxy api:8080 {
+		health_uri /api/v1/health
+		health_interval 30s
+	}
+}
+
+:80 {
+	redir https://{host}{uri} permanent
+}

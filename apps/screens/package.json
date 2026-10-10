@@ -1,0 +1,13 @@
+{
+  "name": "@offset/screens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Screen tests: the product in a real browser, the way a person uses it.",
+  "type": "module",
+  "scripts": {
+    "test:screens": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}
