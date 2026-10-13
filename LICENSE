@@ -1,0 +1,151 @@
+OFFSET SECURITY — COMMUNITY EDITION
+END USER LICENCE AGREEMENT
+
+Version 1.2 — 9 October 2026
+Copyright (c) 2026 Offset Security. All rights reserved.
+
+This agreement covers Offset Irtiqa, in its Community Edition ("the Software").
+
+Please read this before installing. Installing or using the Software means you
+accept it. If you do not accept it, do not install it.
+
+
+1. WHAT YOU MAY DO
+
+The Software is free. Offset Security grants you a licence, at no charge, to:
+
+  a. install and run the Software on as many computers as you like, inside
+     your own organisation;
+  b. use it for any purpose, commercial or otherwise, including work you are
+     paid for;
+  c. let as many of your own people use it as you like;
+  d. keep and use everything you put into it — your data is yours; and
+  e. pass on the Software to others, provided you pass it on complete,
+     unmodified, at no charge, and with this agreement included.
+
+This licence is non-exclusive and can be ended as set out in section 7.
+
+
+2. WHAT YOU MAY NOT DO
+
+You may not:
+
+  a. modify, adapt or translate the Software, or create anything derived
+     from it;
+  b. reverse engineer, decompile or disassemble the compiled Software,
+     except where law says you may despite this term;
+  c. remove, alter, hide or obscure the Offset Security name, logo, product
+     names, copyright notices or the notices in section 5 — anywhere they
+     appear, including on screen and in exported reports;
+  d. re-brand or white-label the Software, or present it as your own product
+     or as anyone else's;
+  e. sell, rent, lease, sublicense or charge for the Software;
+  f. run it as a service for people outside your own organisation, whether
+     paid or free;
+  g. use the Offset Security name, logos or product names to promote anything,
+     or in a way that suggests Offset Security endorses you; or
+  h. use it to break the law.
+
+For the avoidance of doubt: the Software includes a feature for adding your
+own organisation's logo to reports you export. Using that feature is expressly
+permitted and is not a breach of 2(c) or 2(d). It adds your logo to your
+documents; it does not remove ours from the product.
+
+
+3. THE SOURCE CODE
+
+The source code is published so that you can read it and check what the
+Software does. Reading it is permitted. This is not open source: no right to
+modify, compile, reuse or redistribute the source code, in whole or in part,
+is granted. Section 2 applies to the source code as it does to the Software.
+
+
+4. WHO OWNS WHAT
+
+Offset Security owns the Software and everything in it, and keeps that
+ownership. This agreement licenses the Software to you; it does not sell it to
+you. Anything not expressly granted here is reserved.
+
+You own your data. The Software stores everything on the systems you run it
+on. It sends nothing to Offset Security and contains no telemetry or usage
+tracking. It never checks for updates by itself: only when an administrator
+presses the button in Settings does it contact Offset Security's release page,
+to see whether a newer version exists. Nothing else leaves your machines unless
+you send it yourself.
+
+
+5. FRAMEWORKS AND THIRD PARTIES
+
+Offset Irtiqa is not affiliated with, endorsed by, or certified by the Saudi
+Central Bank (SAMA).
+
+Framework references, control identifiers and titles belong to their
+respective owners and are used to identify the controls the Software helps you
+manage. Guidance wording in the Software is original to Offset Security and is
+not the text of any standard, framework or regulation.
+
+Using the Software does not make you certified or compliant. It is a tool for
+managing your own work. Whether you comply, and where certification exists
+whether you are certified, is decided by the body that assesses you.
+
+The Software includes third-party open source components, each under its own
+licence. Those licences continue to apply to those components and nothing in
+this agreement restricts rights you have under them. The inventory ships with
+each release.
+
+
+6. NO WARRANTY, AND WHAT WE ARE NOT LIABLE FOR
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+
+Offset Security does not warrant that the Software is free of defects, that it
+will run without interruption, or that it will meet your requirements.
+
+TO THE FULLEST EXTENT PERMITTED BY LAW, OFFSET SECURITY IS NOT LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+ARISING FROM OR CONNECTED WITH THE SOFTWARE OR ITS USE — INCLUDING LOSS OF
+DATA, LOSS OF PROFIT, BUSINESS INTERRUPTION, OR ANY FAILURE OF AN AUDIT,
+CERTIFICATION OR REGULATORY PROCESS.
+
+The Software is free of charge. You have paid nothing for it, and nothing is
+owed to you in respect of it.
+
+Back up your data. The Software takes nightly backups to a folder you choose,
+but keeping and testing those backups is your responsibility.
+
+Nothing here excludes liability that cannot lawfully be excluded.
+
+
+7. ENDING THIS LICENCE
+
+This licence ends automatically if you breach it. It also ends if you stop
+using the Software and remove it.
+
+When it ends, stop using the Software and remove every copy. Your own data is
+unaffected — it is yours, and it stays where it is.
+
+Sections 2, 4, 5, 6 and 8 survive.
+
+
+8. GENERAL
+
+This agreement is governed by the laws of India.
+
+If any part of this agreement is found unenforceable, the rest stays in force.
+
+This is the whole agreement between you and Offset Security about the
+Software, and it replaces anything said or written before.
+
+Offset Security may issue later versions of this agreement with new releases.
+The version supplied with a release governs that release. Nothing changes
+retrospectively for a release you already have.
+
+
+9. GETTING IN TOUCH
+
+Licensing and support: info@offsetsecurity.net
+
+This is the Community Edition and it is provided free of charge. Support is
+offered as a courtesy, not as a contractual obligation.

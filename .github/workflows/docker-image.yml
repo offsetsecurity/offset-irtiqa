@@ -1,0 +1,91 @@
+# Builds one product's Docker images and stores them in GitHub's container
+# registry (ghcr.io) when someone presses "Run workflow" on the Actions tab.
+#
+# For getting an image onto a machine before a release exists. A release
+# builds, signs and publishes every package for every product; this builds two
+# images for one product and nothing else. The images take the repository's
+# visibility, private here, so pulling one needs a GitHub token that can read
+# packages.
+name: Build a Docker image
+
+on:
+  workflow_dispatch:
+    inputs:
+      product:
+        description: Which product (ascend is Offset Irtiqa)
+        type: choice
+        options: [ascend]
+        default: ascend
+      version:
+        description: Version to stamp on it, x.y.z
+        default: "0.1.0"
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io/offsetsecurity
+  PRODUCT: ${{ inputs.product }}
+  VERSION: ${{ inputs.version }}
+
+jobs:
+  image:
+    name: offset-${{ inputs.product }}
+    runs-on: ubuntu-latest
+    steps:
+      # Read from the environment, never pasted into the script, so nothing
+      # typed into the form can run as a command.
+      - name: Check the version
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Version must be x.y.z, not $VERSION"; exit 1; }
+
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Application image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          target: runtime
+          build-args: |
+            PRODUCT=${{ env.PRODUCT }}
+            APP_VERSION=${{ env.VERSION }}
+          tags: |
+            ${{ env.REGISTRY }}/offset-${{ env.PRODUCT }}:${{ env.VERSION }}
+            ${{ env.REGISTRY }}/offset-${{ env.PRODUCT }}:latest
+          push: true
+          provenance: false
+
+      - name: Updater image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          target: updater
+          build-args: |
+            PRODUCT=${{ env.PRODUCT }}
+            APP_VERSION=${{ env.VERSION }}
+          tags: |
+            ${{ env.REGISTRY }}/offset-${{ env.PRODUCT }}-updater:${{ env.VERSION }}
+            ${{ env.REGISTRY }}/offset-${{ env.PRODUCT }}-updater:latest
+          push: true
+          provenance: false
+
+      - name: How to use it
+        run: |
+          {
+            echo "### offset-$PRODUCT $VERSION is stored on GitHub"
+            echo
+            echo "On the machine that will run it:"
+            echo '```'
+            echo "docker login ghcr.io -u <your GitHub username>"
+            echo "docker pull $REGISTRY/offset-$PRODUCT:$VERSION"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

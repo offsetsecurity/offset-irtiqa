@@ -1,0 +1,58 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+build/out/
+*.tsbuildinfo
+
+# environment & secrets  — NEVER commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+license.key
+secrets/
+
+# runtime data
+data/
+evidence/
+backups/
+logs/
+*.log
+
+# release artifacts. Anchored to dist: a bare "release/" also matched
+# deploy/release/, so the three scripts that build and sign a release were
+# never committed and the release job could not run.
+/dist/release/
+*.tar
+*.tar.gz
+images.tar
+
+# test / coverage
+coverage/
+.playwright/
+test-results/
+playwright-report/
+
+# editors & OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# local dev runtime and downloads — never commit
+.local/
+
+# the database itself, and its WAL siblings
+data/
+backups/
+*.db
+*.db-wal
+*.db-shm
+

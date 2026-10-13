@@ -1,0 +1,148 @@
+# Offset, on Docker.
+#
+#   cd deploy/docker
+#   cp env.example .env        # then fill in the two secrets it asks for
+#   docker compose up -d --build
+#
+# Open http://localhost:8080. The first person to open it creates the
+# administrator account.
+#
+# Change PRODUCT in .env to build another product instead. One database per
+# product: they have different frameworks and must not share a volume.
+
+# Named after the product, so its volumes are too (offset-ascend_data and so
+# on). With one fixed name, a second product on the same machine opened the
+# first one's database, found it already seeded, and showed the wrong framework
+# under its own name.
+name: offset-${PRODUCT:-ascend}
+
+services:
+  # ── the application ────────────────────────────────────────────────────────
+  app:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+      target: runtime
+      args:
+        PRODUCT: ${PRODUCT:-ascend}
+    # OFFSET_IMAGE is written by the updater, naming the new release by digest.
+    # Until the first update it is unset and the locally built image is used.
+    image: ${OFFSET_IMAGE:-offset-${PRODUCT:-ascend}:${APP_VERSION:-0.1.0}}
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      INSTALL_KIND: docker
+      UPDATE_REQUEST_DIR: /app/updates/request
+      UPDATE_STATUS_DIR: /app/updates/status
+    ports:
+      # Bound to localhost on purpose. Without a certificate this serves plain
+      # HTTP, so publishing it to the network would put session cookies and
+      # passwords on the wire in clear. Give it a certificate (see certs below)
+      # or put a reverse proxy in front, and only then drop the 127.0.0.1 prefix.
+      #
+      # HTTP_PORT changes only the host side. The container always listens on
+      # 8080, which is what the health check and the proxy behind it expect.
+      - "127.0.0.1:${HTTP_PORT:-8080}:8080"
+    volumes:
+      - data:/app/data
+      - evidence:/app/evidence
+      - backups:/app/backups
+      - logs:/app/logs
+      # Its half of the handoff to the updater: it may write a request, and
+      # only read what the updater reports back.
+      - update-requests:/app/updates/request
+      - update-status:/app/updates/status:ro
+      # For HTTPS: put cert.pem and key.pem in a "certs" folder beside this
+      # file, and set TLS_CERT_FILE=/app/certs/cert.pem and
+      # TLS_KEY_FILE=/app/certs/key.pem in .env. Written with
+      # OFFSET_INSTALL_DIR so the updater, which runs compose from inside a
+      # container, mounts the same folder when it recreates this.
+      - ${OFFSET_INSTALL_DIR:-.}/certs:/app/certs:ro
+    # The database is one SQLite file and the schema is applied at start-up, so
+    # more than one of these would race. Scale the proxy, not this.
+    deploy:
+      replicas: 1
+
+  # ── the background worker ──────────────────────────────────────────────────
+  # Same image, different command. Nightly backup and pruning, the daily
+  # readiness snapshot, reminder emails, WAL checkpoints and housekeeping.
+  # Without it the product still works and nothing is ever backed up.
+  worker:
+    # No build section on purpose. Both services run the same image, and asking
+    # buildx to produce one tag twice in the same run fails with
+    # "image ... already exists". `up --build` builds it once, for app, and
+    # this picks up the result.
+    image: ${OFFSET_IMAGE:-offset-${PRODUCT:-ascend}:${APP_VERSION:-0.1.0}}
+    command: ["node", "dist/worker.js"]
+    restart: unless-stopped
+    env_file: [.env]
+    # It listens on nothing, so the image's HTTP health check would mark it
+    # permanently unhealthy.
+    healthcheck:
+      disable: true
+    volumes:
+      # The same four volumes, and it matters: the worker writes the backups
+      # and reads the same database file the API is writing.
+      - data:/app/data
+      - evidence:/app/evidence
+      - backups:/app/backups
+      - logs:/app/logs
+    depends_on:
+      app:
+        # The API owns the schema. Starting the worker first only means it
+        # waits, but waiting for a healthy API keeps the logs readable.
+        condition: service_healthy
+
+  # ── the updater ────────────────────────────────────────────────────────────
+  # Installs updates when an administrator clicks Update in Settings.
+  #
+  # Off unless COMPOSE_PROFILES=updates is in .env, because it is given the
+  # Docker socket, and that is the same as being given the machine. The offline
+  # bundles turn it on; a copy built from source is updated with git instead.
+  #
+  # Least privilege otherwise: no ports, no secrets (environment is listed
+  # rather than taken from .env, which holds the session and encryption keys),
+  # and the request volume read-only, so the application can ask but cannot
+  # reach anything the updater writes.
+  updater:
+    profiles: [updates]
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+      target: updater
+      args:
+        PRODUCT: ${PRODUCT:-ascend}
+    image: ${OFFSET_UPDATER_IMAGE:-offset-${PRODUCT:-ascend}-updater:${APP_VERSION:-0.1.0}}
+    restart: unless-stopped
+    environment:
+      PRODUCT: ${PRODUCT:-ascend}
+      UPDATE_URL: ${UPDATE_URL:-}
+      UPDATE_TRUSTED_KEYS: ${UPDATE_TRUSTED_KEYS:-}
+      UPDATE_ALLOW_HTTP: ${UPDATE_ALLOW_HTTP:-false}
+      # Only whether it is set: the updater talks HTTPS to the application
+      # when the application does.
+      TLS_CERT_FILE: ${TLS_CERT_FILE:-}
+    healthcheck:
+      disable: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # This folder: compose.yaml and .env, which is where the new image is
+      # recorded. When the updater runs compose it sets OFFSET_INSTALL_DIR to
+      # this folder's path on the host, so every bind mount still points at it.
+      - ${OFFSET_INSTALL_DIR:-.}:/install
+      - update-requests:/updates/request:ro
+      - update-status:/updates/status
+      # For putting the database back if an update has to be rolled back.
+      - data:/app/data
+      - backups:/app/backups
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  data:
+  evidence:
+  backups:
+  logs:
+  update-requests:
+  update-status:

@@ -1,0 +1,236 @@
+{
+  "title": "Getting SAMA ready",
+  "intro": "Seven stages, in the order most organisations find easiest. You do not have to follow it. Anything you can already do, do now; the order is advice, not a rule. A stage turns green when everything in it is done or marked as not applying to you.",
+  "stages": [
+    {
+      "id": "setup",
+      "name": "Set the product up",
+      "aim": "Get the tool ready and the right people into it. An hour's work, and nothing else goes well without it.",
+      "tasks": [
+        {
+          "id": "setup.people",
+          "title": "Add the people who will do the work",
+          "do": "Go to Users and add everyone who will record work here. Give them the smallest role that lets them do their job: Contributor to record work, Auditor or Read only for people who just need to see it.",
+          "why": "One person doing all of this alone is how it stalls. It also means every change is recorded against a real name, which is what an assessor expects to see.",
+          "check": "users.beyondAdmin",
+          "goto": "people"
+        },
+        {
+          "id": "setup.email",
+          "title": "Turn on email",
+          "do": "In Settings, put in your mail server details and send yourself a test message.",
+          "why": "Without it nobody gets a password reset, and nobody gets the daily summary telling them what is overdue. You will not notice this until you need it.",
+          "check": "settings.smtp",
+          "goto": "settings"
+        },
+        {
+          "id": "setup.branding",
+          "title": "Put your logo on reports",
+          "do": "In Reports, upload your organisation's logo.",
+          "why": "Every PDF you export goes to your board or your regulator with your name on it. Takes a minute.",
+          "check": "settings.logo",
+          "goto": "reports"
+        },
+        {
+          "id": "setup.backup",
+          "title": "Keep a copy of the backup somewhere else",
+          "do": "A backup runs every night on its own; the line below says when it last ran. Open Backups, press Download on the newest one, and keep that file somewhere other than this server.",
+          "why": "A backup nobody has ever opened is not a backup, and one sitting on the same machine as the original is not a backup either. Find out now, not after you lose the machine.",
+          "check": "jobs.backupRan",
+          "goto": "backups"
+        }
+      ]
+    },
+    {
+      "id": "scope",
+      "name": "Decide what you are protecting",
+      "aim": "Write down what is in scope and what you own. Everything after this hangs off it.",
+      "tasks": [
+        {
+          "id": "scope.written",
+          "title": "Write down your scope",
+          "do": "Open Policies. Scope is the box at the top. Write a short description of what this programme covers: which company, which services, which locations, which systems. A paragraph is enough. Say plainly what is not covered.",
+          "why": "Without a written scope, every later question turns into an argument. It is also the first thing an assessor reads.",
+          "check": "programme.scope",
+          "goto": "policies"
+        },
+        {
+          "id": "scope.assets",
+          "title": "List what you actually have",
+          "do": "In Assets, record your systems, applications and data stores. Start with the ten that matter most. Give each one an owner and say how critical it is.",
+          "why": "You cannot protect what nobody has written down. SAMA expects information assets to be identified and classified, and a good many controls later refer back to this list.",
+          "check": "registers.assets",
+          "goto": "assets"
+        },
+        {
+          "id": "scope.owner",
+          "title": "Name one person accountable for cyber security",
+          "do": "Decide who owns cyber security for the organisation, and get it agreed in writing by whoever can agree it. Record them as the owner on control 3.1.1.8, the full-time CISO.",
+          "why": "SAMA expects a defined, accountable owner with authority. \"Everyone is responsible\" means nobody is, and an assessor will say so.",
+          "goto": "controls"
+        }
+      ]
+    },
+    {
+      "id": "assess",
+      "name": "Find out where you stand",
+      "aim": "Score all 136 controls honestly. This is the big one, and the rest of the plan comes out of it.",
+      "tasks": [
+        {
+          "id": "assess.read",
+          "title": "Read what each control is asking",
+          "do": "Open a few controls and read the guidance in each one: what it is for, what level 3 looks like, and what an assessor will look for.",
+          "why": "Scoring without reading produces a number that means nothing. Ten minutes here saves you re-doing the whole assessment.",
+          "goto": "controls"
+        },
+        {
+          "id": "assess.na",
+          "title": "Mark anything that genuinely does not apply",
+          "do": "If a control truly does not apply to you - no ATMs, no card acquiring, no cloud - mark it Not applicable and write why. Be strict with yourself: \"we have not got round to it\" is not the same as \"it does not apply\".",
+          "why": "Genuine exclusions stop dragging your average down. Convenient exclusions are the fastest way to make the whole assessment worthless, and they are easy to spot.",
+          "goto": "controls"
+        },
+        {
+          "id": "assess.scored",
+          "title": "Score every control that does apply",
+          "do": "Give each one a level from 0 to 5. Score what is true today, not what you intend. Remember level 3 needs all four: written down, approved, actually followed, and checked.",
+          "why": "An honest low score you can improve is worth more than a flattering one you cannot defend. Your first assessment is a starting point, not a grade.",
+          "check": "controls.allScored",
+          "goto": "controls"
+        },
+        {
+          "id": "assess.targets",
+          "title": "Set higher targets where you need them",
+          "do": "Every control targets level 3, which is what SAMA expects. If something matters more to you than that, raise its target to 4 or 5 on the control itself.",
+          "why": "Three is the floor, not the ceiling. Deciding now where you want to be better than the minimum stops it being an afterthought.",
+          "goto": "controls"
+        }
+      ]
+    },
+    {
+      "id": "write",
+      "name": "Write it down",
+      "aim": "Most low scores are not because you do nothing. They are because nothing is written down and approved.",
+      "tasks": [
+        {
+          "id": "write.policy",
+          "title": "Write a cyber security policy",
+          "do": "In Policies, add your cyber security policy. If you do not have one, write a short one that says what you protect, who is accountable, and what staff must and must not do. Two pages beats nothing.",
+          "why": "Subdomain 3.1.3 Cyber Security Policy is about exactly this, and many other controls refer back to it. Without an approved policy you are capped at level 2 across a lot of the framework.",
+          "check": "registers.policies",
+          "goto": "policies"
+        },
+        {
+          "id": "write.approved",
+          "title": "Get your policies formally approved",
+          "do": "Take them to your board, your owner, or whoever can approve them. Record the approval and the date against the policy.",
+          "why": "Written is level 2. Written and approved is on the way to level 3. An assessor will ask who signed it and when, and \"it is on the intranet\" is not an answer.",
+          "goto": "policies"
+        },
+        {
+          "id": "write.review",
+          "title": "Set a review date on each policy",
+          "do": "Give every policy a review date, normally a year out.",
+          "why": "A policy nobody has looked at in four years tells an assessor more about you than its contents do.",
+          "goto": "policies"
+        }
+      ]
+    },
+    {
+      "id": "risk",
+      "name": "Work out what could go wrong",
+      "aim": "SAMA is a risk-based framework. Without a risk register, most of 3.2.1, Cyber Security Risk Management, cannot get past level 2.",
+      "tasks": [
+        {
+          "id": "risk.register",
+          "title": "Record your risks",
+          "do": "In Risks, write down what could realistically go wrong. Score each one for how likely it is and how bad it would be. Ten real risks beat a hundred copied from a template.",
+          "why": "Subdomain 3.2.1 Cyber Security Risk Management asks for this. The register is the answer to it, and it is the first thing an assessor asks to see.",
+          "check": "registers.risks",
+          "goto": "risks"
+        },
+        {
+          "id": "risk.owners",
+          "title": "Give every risk an owner and a decision",
+          "do": "For each risk, name who owns it and say what you are doing: treating it, accepting it, transferring it, or avoiding it. An accepted risk needs a reason and someone senior enough to accept it.",
+          "why": "A risk with no owner and no decision is a list entry, not risk management.",
+          "goto": "risks"
+        },
+        {
+          "id": "risk.linked",
+          "title": "Link risks to the controls that reduce them",
+          "do": "Open a risk and attach the controls that reduce it.",
+          "why": "It shows the connection between what worries you and what you are doing about it. It also shows up fast when a serious risk has nothing behind it.",
+          "goto": "risks"
+        }
+      ]
+    },
+    {
+      "id": "prove",
+      "name": "Collect the proof",
+      "aim": "This is where most first assessments fall apart. Saying you do something is not the same as being able to show it.",
+      "tasks": [
+        {
+          "id": "prove.evidence",
+          "title": "Attach proof to what you have scored highly",
+          "do": "In Evidence, record what proves each thing and attach the file: the approved policy, the training records, the access review, the backup test. Start with everything you scored 3 or above.",
+          "why": "Anything you scored 3 or more, you are claiming is defined, approved, in use and monitored. An assessor will ask you to show it. Have it ready.",
+          "check": "evidence.any",
+          "goto": "evidence"
+        },
+        {
+          "id": "prove.linked",
+          "title": "Link each piece of proof to the control it proves",
+          "do": "Open an evidence item and attach the controls it supports.",
+          "why": "Unlinked evidence is a folder of files. Linked evidence answers the question \"show me\" in one click, during an assessment, while somebody is waiting.",
+          "check": "evidence.linked",
+          "goto": "evidence"
+        },
+        {
+          "id": "prove.fresh",
+          "title": "Put a date on everything",
+          "do": "Record when each item was collected. Anything older than ninety days shows as needing a refresh.",
+          "why": "Proof goes stale. An access review from two years ago proves you did one two years ago.",
+          "goto": "evidence"
+        }
+      ]
+    },
+    {
+      "id": "improve",
+      "name": "Close the gaps and keep it going",
+      "aim": "Being ready once is not the point. This is the stage that never finishes, and that is correct.",
+      "tasks": [
+        {
+          "id": "improve.plan",
+          "title": "Turn your gaps into actual tasks",
+          "do": "Export the Gap report, take the worst gaps off the top, and raise a task for each one in Tasks with an owner and a due date.",
+          "why": "A gap report nobody acted on is just a list of things you already knew. Tasks with names and dates are what move a score.",
+          "check": "registers.tasks",
+          "goto": "tasks"
+        },
+        {
+          "id": "improve.report",
+          "title": "Show management where you stand",
+          "do": "Export the Maturity assessment and the Executive summary, and take them to your board or owner.",
+          "why": "Subdomains 3.1.1 Cyber Security Governance and 3.1.4 Roles and Responsibilities expect reporting to the committee and the board. Doing it produces the evidence for it. Two things for the price of one.",
+          "check": "reports.exported",
+          "goto": "reports"
+        },
+        {
+          "id": "improve.rescore",
+          "title": "Re-score after you fix something",
+          "do": "When a task closes, go back to the control and update its level.",
+          "why": "The dashboard is only worth looking at if it is current. It is also how you see the line moving, which is the part that keeps people going.",
+          "goto": "controls"
+        },
+        {
+          "id": "improve.routine",
+          "title": "Put a date in the diary to do this again",
+          "do": "Agree how often you will review the whole thing — every quarter works for most — and book it now.",
+          "why": "Level 4 is measured and managed. You do not get there with a one-off effort, and a date in the diary is the cheapest part of the whole framework.",
+          "goto": "tasks"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+name: Upgrade test
+
+# Installs an older release on a fresh Windows machine, puts data in it,
+# installs a newer release over it, and checks nothing was lost. Started by
+# hand from the Actions tab, so it costs nothing unless someone runs it.
+on:
+  workflow_dispatch:
+    inputs:
+      old:
+        description: "The release to start from, e.g. v0.2.36"
+        required: true
+      new:
+        description: "The release to upgrade to, e.g. v0.2.37"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows installer upgrade
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download both installers
+        shell: pwsh
+        run: |
+          gh release download "${{ inputs.old }}" -R "${{ github.repository }}" -p "*-setup.exe" -O old-setup.exe
+          gh release download "${{ inputs.new }}" -R "${{ github.repository }}" -p "*-setup.exe" -O new-setup.exe
+      - name: Install the old one, add data, upgrade, check
+        shell: pwsh
+        run: ./deploy/windows/upgrade-test.ps1 -Old "$PWD/old-setup.exe" -New "$PWD/new-setup.exe" -Version ("${{ inputs.new }}".TrimStart("v"))
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upgrade-test-logs
+          path: |
+            *-install.log
+            C:\ProgramData\Offset Security\*\logs
+          retention-days: 7

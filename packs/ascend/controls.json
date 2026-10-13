@@ -1,0 +1,1010 @@
+[
+  {
+    "ref": "3.1.1",
+    "title": "Cyber Security Governance",
+    "theme": "LG",
+    "parentRef": null
+  },
+  {
+    "ref": "3.1.1.1",
+    "title": "A cyber security committee mandated by the board",
+    "theme": "LG",
+    "parentRef": "3.1.1"
+  },
+  {
+    "ref": "3.1.1.2",
+    "title": "Committee chaired by an independent senior manager from a control function",
+    "theme": "LG",
+    "parentRef": "3.1.1"
+  },
+  {
+    "ref": "3.1.1.3",
+    "title": "Who sits on the committee",
+    "theme": "LG",
+    "parentRef": "3.1.1"
+  },
+  {
+    "ref": "3.1.1.4",
+    "title": "An approved committee charter, meeting at least quarterly",
+    "theme": "LG",
+    "parentRef": "3.1.1"
+  },
+  {
+    "ref": "3.1.1.5",
+    "title": "A cyber security function",
+    "theme": "LG",
+    "parentRef": "3.1.1"
+  },
+  {
+    "ref": "3.1.1.6",
+    "title": "Cyber security independent from IT",
+    "theme": "LG",
+    "parentRef": "3.1.1"
+  },
+  {
+    "ref": "3.1.1.7",
+    "title": "Reports to the CEO or to the head of a control function",
+    "theme": "LG",
+    "parentRef": "3.1.1"
+  },
+  {
+    "ref": "3.1.1.8",
+    "title": "A full-time CISO at senior management level",
+    "theme": "LG",
+    "parentRef": "3.1.1"
+  },
+  {
+    "ref": "3.1.1.9",
+    "title": "The CISO: Saudi national, qualified, and cleared by SAMA",
+    "theme": "LG",
+    "parentRef": "3.1.1"
+  },
+  {
+    "ref": "3.1.1.10",
+    "title": "Enough budget for cyber security",
+    "theme": "LG",
+    "parentRef": "3.1.1"
+  },
+  {
+    "ref": "3.1.2",
+    "title": "Cyber Security Strategy",
+    "theme": "LG",
+    "parentRef": null
+  },
+  {
+    "ref": "3.1.2.1",
+    "title": "A strategy that is defined, approved, kept up to date and carried out",
+    "theme": "LG",
+    "parentRef": "3.1.2"
+  },
+  {
+    "ref": "3.1.2.2",
+    "title": "Aligned with the business, the law and the banking sector",
+    "theme": "LG",
+    "parentRef": "3.1.2"
+  },
+  {
+    "ref": "3.1.2.3",
+    "title": "What the strategy covers",
+    "theme": "LG",
+    "parentRef": "3.1.2"
+  },
+  {
+    "ref": "3.1.3",
+    "title": "Cyber Security Policy",
+    "theme": "LG",
+    "parentRef": null
+  },
+  {
+    "ref": "3.1.3.1",
+    "title": "A policy that is defined, approved and communicated",
+    "theme": "LG",
+    "parentRef": "3.1.3"
+  },
+  {
+    "ref": "3.1.3.2",
+    "title": "Reviewed on a set schedule",
+    "theme": "LG",
+    "parentRef": "3.1.3"
+  },
+  {
+    "ref": "3.1.3.3",
+    "title": "Where the policy fits",
+    "theme": "LG",
+    "parentRef": "3.1.3"
+  },
+  {
+    "ref": "3.1.3.4",
+    "title": "What the policy contains",
+    "theme": "LG",
+    "parentRef": "3.1.3"
+  },
+  {
+    "ref": "3.1.4",
+    "title": "Cyber Security Roles and Responsibilities",
+    "theme": "LG",
+    "parentRef": null
+  },
+  {
+    "ref": "3.1.4.1",
+    "title": "The board's responsibilities",
+    "theme": "LG",
+    "parentRef": "3.1.4"
+  },
+  {
+    "ref": "3.1.4.2",
+    "title": "The committee's responsibilities",
+    "theme": "LG",
+    "parentRef": "3.1.4"
+  },
+  {
+    "ref": "3.1.4.3",
+    "title": "Senior management's responsibilities",
+    "theme": "LG",
+    "parentRef": "3.1.4"
+  },
+  {
+    "ref": "3.1.4.4",
+    "title": "The CISO's responsibilities",
+    "theme": "LG",
+    "parentRef": "3.1.4"
+  },
+  {
+    "ref": "3.1.4.5",
+    "title": "Internal audit carries out cyber security audits",
+    "theme": "LG",
+    "parentRef": "3.1.4"
+  },
+  {
+    "ref": "3.1.4.6",
+    "title": "Every member of staff follows the policy",
+    "theme": "LG",
+    "parentRef": "3.1.4"
+  },
+  {
+    "ref": "3.1.5",
+    "title": "Cyber Security in Project Management",
+    "theme": "LG",
+    "parentRef": null
+  },
+  {
+    "ref": "3.1.5.1",
+    "title": "Security built into the project methodology",
+    "theme": "LG",
+    "parentRef": "3.1.5"
+  },
+  {
+    "ref": "3.1.5.2",
+    "title": "What the methodology makes sure of",
+    "theme": "LG",
+    "parentRef": "3.1.5"
+  },
+  {
+    "ref": "3.1.6",
+    "title": "Cyber Security Awareness",
+    "theme": "LG",
+    "parentRef": null
+  },
+  {
+    "ref": "3.1.6.1",
+    "title": "An approved awareness programme",
+    "theme": "LG",
+    "parentRef": "3.1.6"
+  },
+  {
+    "ref": "3.1.6.2",
+    "title": "For staff, third parties and customers",
+    "theme": "LG",
+    "parentRef": "3.1.6"
+  },
+  {
+    "ref": "3.1.6.3",
+    "title": "Tailored to each audience, through several channels",
+    "theme": "LG",
+    "parentRef": "3.1.6"
+  },
+  {
+    "ref": "3.1.6.4",
+    "title": "Throughout the year",
+    "theme": "LG",
+    "parentRef": "3.1.6"
+  },
+  {
+    "ref": "3.1.6.5",
+    "title": "The minimum content",
+    "theme": "LG",
+    "parentRef": "3.1.6"
+  },
+  {
+    "ref": "3.1.6.6",
+    "title": "Evaluated for effectiveness",
+    "theme": "LG",
+    "parentRef": "3.1.6"
+  },
+  {
+    "ref": "3.1.6.7",
+    "title": "Customer awareness with suggested protections",
+    "theme": "LG",
+    "parentRef": "3.1.6"
+  },
+  {
+    "ref": "3.1.7",
+    "title": "Cyber Security Training",
+    "theme": "LG",
+    "parentRef": null
+  },
+  {
+    "ref": "3.1.7.1",
+    "title": "Specialist training by role",
+    "theme": "LG",
+    "parentRef": "3.1.7"
+  },
+  {
+    "ref": "3.1.7.2",
+    "title": "Education to operate systems securely",
+    "theme": "LG",
+    "parentRef": "3.1.7"
+  },
+  {
+    "ref": "3.2.1",
+    "title": "Cyber Security Risk Management",
+    "theme": "RC",
+    "parentRef": null
+  },
+  {
+    "ref": "3.2.1.1",
+    "title": "A defined, approved and implemented process",
+    "theme": "RC",
+    "parentRef": "3.2.1"
+  },
+  {
+    "ref": "3.2.1.2",
+    "title": "Focused on confidentiality, integrity and availability",
+    "theme": "RC",
+    "parentRef": "3.2.1"
+  },
+  {
+    "ref": "3.2.1.3",
+    "title": "Aligned with enterprise risk management",
+    "theme": "RC",
+    "parentRef": "3.2.1"
+  },
+  {
+    "ref": "3.2.1.4",
+    "title": "Documented, covering all four stages",
+    "theme": "RC",
+    "parentRef": "3.2.1"
+  },
+  {
+    "ref": "3.2.1.5",
+    "title": "Covering processes, applications and infrastructure",
+    "theme": "RC",
+    "parentRef": "3.2.1"
+  },
+  {
+    "ref": "3.2.1.6",
+    "title": "When a risk assessment must start",
+    "theme": "RC",
+    "parentRef": "3.2.1"
+  },
+  {
+    "ref": "3.2.1.7",
+    "title": "Existing assets reassessed periodically",
+    "theme": "RC",
+    "parentRef": "3.2.1"
+  },
+  {
+    "ref": "3.2.1.8",
+    "title": "The right people involved",
+    "theme": "RC",
+    "parentRef": "3.2.1"
+  },
+  {
+    "ref": "3.2.1.9",
+    "title": "Results reported to the risk owner",
+    "theme": "RC",
+    "parentRef": "3.2.1"
+  },
+  {
+    "ref": "3.2.1.10",
+    "title": "Results accepted and endorsed by the risk owner",
+    "theme": "RC",
+    "parentRef": "3.2.1"
+  },
+  {
+    "ref": "3.2.1.11",
+    "title": "Risk appetite and tolerance defined and approved",
+    "theme": "RC",
+    "parentRef": "3.2.1"
+  },
+  {
+    "ref": "3.2.2",
+    "title": "Regulatory Compliance",
+    "theme": "RC",
+    "parentRef": null
+  },
+  {
+    "ref": "3.2.2.1",
+    "title": "A process to stay compliant with regulation",
+    "theme": "RC",
+    "parentRef": "3.2.2"
+  },
+  {
+    "ref": "3.2.3",
+    "title": "Compliance with (Inter)national Industry Standards",
+    "theme": "RC",
+    "parentRef": null
+  },
+  {
+    "ref": "3.2.3.1",
+    "title": "PCI DSS, EMV and the SWIFT Customer Security Controls Framework",
+    "theme": "RC",
+    "parentRef": "3.2.3"
+  },
+  {
+    "ref": "3.2.4",
+    "title": "Cyber Security Review",
+    "theme": "RC",
+    "parentRef": null
+  },
+  {
+    "ref": "3.2.4.1",
+    "title": "Critical assets reviewed periodically",
+    "theme": "RC",
+    "parentRef": "3.2.4"
+  },
+  {
+    "ref": "3.2.4.2",
+    "title": "Customer-facing and internet-facing services: yearly review and penetration test",
+    "theme": "RC",
+    "parentRef": "3.2.4"
+  },
+  {
+    "ref": "3.2.4.3",
+    "title": "Reviews recorded in detail",
+    "theme": "RC",
+    "parentRef": "3.2.4"
+  },
+  {
+    "ref": "3.2.4.4",
+    "title": "Results reported to the business owner",
+    "theme": "RC",
+    "parentRef": "3.2.4"
+  },
+  {
+    "ref": "3.2.4.5",
+    "title": "Follow-up reviews",
+    "theme": "RC",
+    "parentRef": "3.2.4"
+  },
+  {
+    "ref": "3.2.5",
+    "title": "Cyber Security Audits",
+    "theme": "RC",
+    "parentRef": null
+  },
+  {
+    "ref": "3.2.5.1",
+    "title": "Independent audits to recognised standards and the SAMA framework",
+    "theme": "RC",
+    "parentRef": "3.2.5"
+  },
+  {
+    "ref": "3.2.5.2",
+    "title": "Following the audit manual and the audit plan",
+    "theme": "RC",
+    "parentRef": "3.2.5"
+  },
+  {
+    "ref": "3.3.1",
+    "title": "Human Resources",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.1.1",
+    "title": "Security requirements in HR processes",
+    "theme": "OT",
+    "parentRef": "3.3.1"
+  },
+  {
+    "ref": "3.3.1.2",
+    "title": "HR security effectiveness monitored and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.1"
+  },
+  {
+    "ref": "3.3.1.3",
+    "title": "What the HR process includes",
+    "theme": "OT",
+    "parentRef": "3.3.1"
+  },
+  {
+    "ref": "3.3.2",
+    "title": "Physical Security",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.2.1",
+    "title": "Physical security process: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.2"
+  },
+  {
+    "ref": "3.3.2.2",
+    "title": "Physical security effectiveness monitored and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.2"
+  },
+  {
+    "ref": "3.3.2.3",
+    "title": "What physical security covers",
+    "theme": "OT",
+    "parentRef": "3.3.2"
+  },
+  {
+    "ref": "3.3.3",
+    "title": "Asset Management",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.3.1",
+    "title": "Asset management process: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.3"
+  },
+  {
+    "ref": "3.3.3.2",
+    "title": "Asset management effectiveness monitored and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.3"
+  },
+  {
+    "ref": "3.3.3.3",
+    "title": "What asset management includes",
+    "theme": "OT",
+    "parentRef": "3.3.3"
+  },
+  {
+    "ref": "3.3.4",
+    "title": "Cyber Security Architecture",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.4.1",
+    "title": "Cyber security architecture: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.4"
+  },
+  {
+    "ref": "3.3.4.2",
+    "title": "Compliance with the cyber security architecture is monitored",
+    "theme": "OT",
+    "parentRef": "3.3.4"
+  },
+  {
+    "ref": "3.3.4.3",
+    "title": "What the architecture includes",
+    "theme": "OT",
+    "parentRef": "3.3.4"
+  },
+  {
+    "ref": "3.3.5",
+    "title": "Identity and Access Management",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.5.1",
+    "title": "Identity and access management policy: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.5"
+  },
+  {
+    "ref": "3.3.5.2",
+    "title": "Compliance with the identity and access management policy is monitored",
+    "theme": "OT",
+    "parentRef": "3.3.5"
+  },
+  {
+    "ref": "3.3.5.3",
+    "title": "Effectiveness of the identity and access management controls measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.5"
+  },
+  {
+    "ref": "3.3.5.4",
+    "title": "What the identity and access management policy includes",
+    "theme": "OT",
+    "parentRef": "3.3.5"
+  },
+  {
+    "ref": "3.3.6",
+    "title": "Application Security",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.6.1",
+    "title": "Application security standard: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.6"
+  },
+  {
+    "ref": "3.3.6.2",
+    "title": "Compliance with the application security standard is monitored",
+    "theme": "OT",
+    "parentRef": "3.3.6"
+  },
+  {
+    "ref": "3.3.6.3",
+    "title": "Effectiveness of the application security controls measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.6"
+  },
+  {
+    "ref": "3.3.6.4",
+    "title": "Development follows an approved secure SDLC",
+    "theme": "OT",
+    "parentRef": "3.3.6"
+  },
+  {
+    "ref": "3.3.6.5",
+    "title": "What the application security standard includes",
+    "theme": "OT",
+    "parentRef": "3.3.6"
+  },
+  {
+    "ref": "3.3.7",
+    "title": "Change Management",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.7.1",
+    "title": "Change management process: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.7"
+  },
+  {
+    "ref": "3.3.7.2",
+    "title": "Compliance with the change management process is monitored",
+    "theme": "OT",
+    "parentRef": "3.3.7"
+  },
+  {
+    "ref": "3.3.7.3",
+    "title": "Effectiveness of the security controls in change management measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.7"
+  },
+  {
+    "ref": "3.3.7.4",
+    "title": "What the change management process includes",
+    "theme": "OT",
+    "parentRef": "3.3.7"
+  },
+  {
+    "ref": "3.3.8",
+    "title": "Infrastructure Security",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.8.1",
+    "title": "Infrastructure security standard: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.8"
+  },
+  {
+    "ref": "3.3.8.2",
+    "title": "Compliance with the infrastructure security standard is monitored",
+    "theme": "OT",
+    "parentRef": "3.3.8"
+  },
+  {
+    "ref": "3.3.8.3",
+    "title": "Effectiveness of the infrastructure security controls measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.8"
+  },
+  {
+    "ref": "3.3.8.4",
+    "title": "Covering data centres, disaster recovery sites and offices",
+    "theme": "OT",
+    "parentRef": "3.3.8"
+  },
+  {
+    "ref": "3.3.8.5",
+    "title": "Covering every type of infrastructure",
+    "theme": "OT",
+    "parentRef": "3.3.8"
+  },
+  {
+    "ref": "3.3.8.6",
+    "title": "What the infrastructure standard includes",
+    "theme": "OT",
+    "parentRef": "3.3.8"
+  },
+  {
+    "ref": "3.3.9",
+    "title": "Cryptography",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.9.1",
+    "title": "Cryptographic security standard: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.9"
+  },
+  {
+    "ref": "3.3.9.2",
+    "title": "Compliance with the cryptographic security standard is monitored",
+    "theme": "OT",
+    "parentRef": "3.3.9"
+  },
+  {
+    "ref": "3.3.9.3",
+    "title": "Effectiveness of the cryptographic controls measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.9"
+  },
+  {
+    "ref": "3.3.9.4",
+    "title": "What the cryptographic standard includes",
+    "theme": "OT",
+    "parentRef": "3.3.9"
+  },
+  {
+    "ref": "3.3.10",
+    "title": "Bring Your Own Device (BYOD)",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.10.1",
+    "title": "BYOD security standard: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.10"
+  },
+  {
+    "ref": "3.3.10.2",
+    "title": "Compliance with the BYOD security standard is monitored",
+    "theme": "OT",
+    "parentRef": "3.3.10"
+  },
+  {
+    "ref": "3.3.10.3",
+    "title": "Effectiveness of the BYOD controls measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.10"
+  },
+  {
+    "ref": "3.3.10.4",
+    "title": "What the BYOD standard includes",
+    "theme": "OT",
+    "parentRef": "3.3.10"
+  },
+  {
+    "ref": "3.3.11",
+    "title": "Secure Disposal of Information Assets",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.11.1",
+    "title": "Secure disposal standard and procedure: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.11"
+  },
+  {
+    "ref": "3.3.11.2",
+    "title": "Compliance with the secure disposal standard and procedure is monitored",
+    "theme": "OT",
+    "parentRef": "3.3.11"
+  },
+  {
+    "ref": "3.3.11.3",
+    "title": "Effectiveness of the secure disposal controls measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.11"
+  },
+  {
+    "ref": "3.3.11.4",
+    "title": "Disposal in line with law and regulation",
+    "theme": "OT",
+    "parentRef": "3.3.11"
+  },
+  {
+    "ref": "3.3.11.5",
+    "title": "Sensitive information made unrecoverable",
+    "theme": "OT",
+    "parentRef": "3.3.11"
+  },
+  {
+    "ref": "3.3.11.6",
+    "title": "Third parties used for disposal follow the standard",
+    "theme": "OT",
+    "parentRef": "3.3.11"
+  },
+  {
+    "ref": "3.3.12",
+    "title": "Payment Systems",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.12.1",
+    "title": "A payment systems security standard",
+    "theme": "OT",
+    "parentRef": "3.3.12"
+  },
+  {
+    "ref": "3.3.12.2",
+    "title": "SARIE: the SARIE Information Security Policy",
+    "theme": "OT",
+    "parentRef": "3.3.12"
+  },
+  {
+    "ref": "3.3.12.3",
+    "title": "Mada: the Mada security framework, HSM requirements and certificate procedures",
+    "theme": "OT",
+    "parentRef": "3.3.12"
+  },
+  {
+    "ref": "3.3.13",
+    "title": "Electronic Banking Services",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.13.1",
+    "title": "Electronic banking security standard: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.13"
+  },
+  {
+    "ref": "3.3.13.2",
+    "title": "Compliance with the electronic banking security standard is monitored",
+    "theme": "OT",
+    "parentRef": "3.3.13"
+  },
+  {
+    "ref": "3.3.13.3",
+    "title": "Effectiveness of the electronic banking security standard measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.13"
+  },
+  {
+    "ref": "3.3.13.4",
+    "title": "What the electronic banking standard covers",
+    "theme": "OT",
+    "parentRef": "3.3.13"
+  },
+  {
+    "ref": "3.3.14",
+    "title": "Cyber Security Event Management",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.14.1",
+    "title": "Security event management process: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.14"
+  },
+  {
+    "ref": "3.3.14.2",
+    "title": "Effectiveness of the security event management controls measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.14"
+  },
+  {
+    "ref": "3.3.14.3",
+    "title": "A security event monitoring standard",
+    "theme": "OT",
+    "parentRef": "3.3.14"
+  },
+  {
+    "ref": "3.3.14.4",
+    "title": "What event management includes",
+    "theme": "OT",
+    "parentRef": "3.3.14"
+  },
+  {
+    "ref": "3.3.15",
+    "title": "Cyber Security Incident Management",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.15.1",
+    "title": "Incident management: defined, approved, implemented and aligned",
+    "theme": "OT",
+    "parentRef": "3.3.15"
+  },
+  {
+    "ref": "3.3.15.2",
+    "title": "Effectiveness of the incident management controls measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.15"
+  },
+  {
+    "ref": "3.3.15.3",
+    "title": "Which events must be responded to",
+    "theme": "OT",
+    "parentRef": "3.3.15"
+  },
+  {
+    "ref": "3.3.15.4",
+    "title": "What incident management includes",
+    "theme": "OT",
+    "parentRef": "3.3.15"
+  },
+  {
+    "ref": "3.3.15.5",
+    "title": "Tell SAMA immediately about medium and high incidents",
+    "theme": "OT",
+    "parentRef": "3.3.15"
+  },
+  {
+    "ref": "3.3.15.6",
+    "title": "SAMA's no-objection before speaking to the media",
+    "theme": "OT",
+    "parentRef": "3.3.15"
+  },
+  {
+    "ref": "3.3.15.7",
+    "title": "A formal incident report to SAMA after recovery",
+    "theme": "OT",
+    "parentRef": "3.3.15"
+  },
+  {
+    "ref": "3.3.16",
+    "title": "Threat Management",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.16.1",
+    "title": "Threat intelligence management process: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.16"
+  },
+  {
+    "ref": "3.3.16.2",
+    "title": "Effectiveness of the threat intelligence management process measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.16"
+  },
+  {
+    "ref": "3.3.16.3",
+    "title": "What threat intelligence includes",
+    "theme": "OT",
+    "parentRef": "3.3.16"
+  },
+  {
+    "ref": "3.3.17",
+    "title": "Vulnerability Management",
+    "theme": "OT",
+    "parentRef": null
+  },
+  {
+    "ref": "3.3.17.1",
+    "title": "Vulnerability management process: defined, approved and implemented",
+    "theme": "OT",
+    "parentRef": "3.3.17"
+  },
+  {
+    "ref": "3.3.17.2",
+    "title": "Effectiveness of the vulnerability management process measured and evaluated",
+    "theme": "OT",
+    "parentRef": "3.3.17"
+  },
+  {
+    "ref": "3.3.17.3",
+    "title": "What vulnerability management includes",
+    "theme": "OT",
+    "parentRef": "3.3.17"
+  },
+  {
+    "ref": "3.4.1",
+    "title": "Contract and Vendor Management",
+    "theme": "TP",
+    "parentRef": null
+  },
+  {
+    "ref": "3.4.1.1",
+    "title": "Security requirements in contract and vendor management",
+    "theme": "TP",
+    "parentRef": "3.4.1"
+  },
+  {
+    "ref": "3.4.1.2",
+    "title": "Compliance with the contract and vendor management process is monitored",
+    "theme": "TP",
+    "parentRef": "3.4.1"
+  },
+  {
+    "ref": "3.4.1.3",
+    "title": "Effectiveness of the contract and vendor security controls measured and evaluated",
+    "theme": "TP",
+    "parentRef": "3.4.1"
+  },
+  {
+    "ref": "3.4.1.4",
+    "title": "What contract and vendor management covers",
+    "theme": "TP",
+    "parentRef": "3.4.1"
+  },
+  {
+    "ref": "3.4.1.5",
+    "title": "What contract management requires",
+    "theme": "TP",
+    "parentRef": "3.4.1"
+  },
+  {
+    "ref": "3.4.1.6",
+    "title": "Vendor performance on security reviewed",
+    "theme": "TP",
+    "parentRef": "3.4.1"
+  },
+  {
+    "ref": "3.4.2",
+    "title": "Outsourcing",
+    "theme": "TP",
+    "parentRef": null
+  },
+  {
+    "ref": "3.4.2.1",
+    "title": "Security requirements in outsourcing",
+    "theme": "TP",
+    "parentRef": "3.4.2"
+  },
+  {
+    "ref": "3.4.2.2",
+    "title": "Outsourcing security requirements measured and evaluated",
+    "theme": "TP",
+    "parentRef": "3.4.2"
+  },
+  {
+    "ref": "3.4.2.3",
+    "title": "SAMA approval and the SAMA outsourcing circular",
+    "theme": "TP",
+    "parentRef": "3.4.2"
+  },
+  {
+    "ref": "3.4.3",
+    "title": "Cloud Computing",
+    "theme": "TP",
+    "parentRef": null
+  },
+  {
+    "ref": "3.4.3.1",
+    "title": "Cloud security controls: defined, approved, implemented and communicated",
+    "theme": "TP",
+    "parentRef": "3.4.3"
+  },
+  {
+    "ref": "3.4.3.2",
+    "title": "Compliance with the cloud computing policy is monitored",
+    "theme": "TP",
+    "parentRef": "3.4.3"
+  },
+  {
+    "ref": "3.4.3.3",
+    "title": "Cloud security controls measured and evaluated",
+    "theme": "TP",
+    "parentRef": "3.4.3"
+  },
+  {
+    "ref": "3.4.3.4",
+    "title": "What the cloud policy requires",
+    "theme": "TP",
+    "parentRef": "3.4.3"
+  }
+]

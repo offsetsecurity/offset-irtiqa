@@ -1,0 +1,110 @@
+{
+  "note": "Everything here ships with the product. Nothing is downloaded, and nothing you read here leaves this server.",
+  "help": [
+    {
+      "file": "first-hour.md",
+      "title": "Your first hour",
+      "about": "What to do straight after installing, in order."
+    },
+    {
+      "file": "what-each-screen-is-for.md",
+      "title": "What each screen is for",
+      "about": "One line on every item in the menu."
+    },
+    {
+      "file": "who-can-do-what.md",
+      "title": "Who can do what",
+      "about": "Roles, passwords, and getting back in."
+    },
+    {
+      "file": "where-your-data-lives.md",
+      "title": "Where your data lives",
+      "about": "Storage, backups, updates and privacy."
+    },
+    {
+      "file": "common-questions.md",
+      "title": "Common questions",
+      "about": "The ones that come up in the first week."
+    }
+  ],
+  "guides": [
+    {
+      "file": "quick-start.md",
+      "title": "Quick start",
+      "about": "Fifteen minutes from a fresh install to knowing what to do next.",
+      "group": "Using the product"
+    },
+    {
+      "file": "using-it.md",
+      "title": "Using it day to day",
+      "about": "The habits that keep you at level 3 once you get there.",
+      "group": "Using the product"
+    },
+    {
+      "file": "administrator-guide.md",
+      "title": "Administrator guide",
+      "about": "Installing, HTTPS, backups, updates and getting back in.",
+      "group": "Using the product"
+    },
+    {
+      "file": "sama-playbook.md",
+      "title": "SAMA Cyber Security Framework playbook",
+      "about": "The maturity scale, the path to level 3, and which screen does each part.",
+      "group": "Using the product"
+    },
+    {
+      "file": "evidence-in-the-cloud.md",
+      "title": "Collecting evidence from the cloud",
+      "about": "Where to find proof in AWS, Azure, Microsoft 365 and Google Workspace.",
+      "group": "Using the product"
+    },
+    {
+      "file": "sama-01-how-assessment-works.md",
+      "title": "How SAMA assessment works",
+      "about": "Who it applies to, the maturity model, level 4 for banks, waivers, and how SAMA checks.",
+      "group": "Getting audit-ready"
+    },
+    {
+      "file": "sama-02-leadership-governance.md",
+      "title": "Domain 3.1: Leadership and Governance",
+      "about": "All 34 controls: the committee, the CISO, strategy, policy, roles, projects, awareness, training.",
+      "group": "Getting audit-ready"
+    },
+    {
+      "file": "sama-03-risk-compliance.md",
+      "title": "Domain 3.2: Risk Management and Compliance",
+      "about": "All 20 controls: risk management, regulation, industry standards, reviews and audits.",
+      "group": "Getting audit-ready"
+    },
+    {
+      "file": "sama-04-operations-technology.md",
+      "title": "Domain 3.3: Operations and Technology",
+      "about": "All 69 controls, from HR and access to the SOC, incidents, threats and vulnerabilities.",
+      "group": "Getting audit-ready"
+    },
+    {
+      "file": "sama-05-third-party.md",
+      "title": "Domain 3.4: Third Party Cyber Security",
+      "about": "All 13 controls: contracts and vendors, outsourcing, and cloud.",
+      "group": "Getting audit-ready"
+    },
+    {
+      "file": "sama-06-documents-and-approvals.md",
+      "title": "Documents, approvals and reports to SAMA",
+      "about": "Every document the controls call for, what SAMA must approve first, and what you report.",
+      "group": "Getting audit-ready"
+    },
+    {
+      "file": "sama-07-assessment-ready.md",
+      "title": "Being ready for SAMA",
+      "about": "The readiness checklist, the gaps to check first, and a yearly cycle.",
+      "group": "Getting audit-ready"
+    },
+    {
+      "file": "template-01-sama-document-set.md",
+      "title": "SAMA document set (01 to 34)",
+      "about": "Thirty-four ready-to-edit documents covering what the SAMA Cyber Security Framework calls for, each filled in from your own records.",
+      "group": "Policy templates"
+    }
+  ]
+}
