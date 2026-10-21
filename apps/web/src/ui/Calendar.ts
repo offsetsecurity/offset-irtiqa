@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import { html } from "./html.js";
 import { calendar, type Calendar as CalendarData, type CalendarItem } from "../persistence/apiClient.js";
+import { localDay } from "./format.js";
 
 /**
  * Everything with a date on it, in one list.
@@ -52,7 +53,7 @@ export function Calendar(): VNode {
   if (!data) return html`<div class="card pad muted">Loading…</div>`;
 
   const { today } = data;
-  const in30 = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
+  const in30 = localDay(30);
   const groups: { id: string; name: string; note: string; items: CalendarItem[] }[] = [
     {
       id: "overdue",

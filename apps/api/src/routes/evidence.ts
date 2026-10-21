@@ -10,6 +10,7 @@ import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js"
 import { audit } from "../audit/audit.js";
 import { badRequest, notFound } from "../lib/errors.js";
 import { config } from "../config.js";
+import { ageDaysSql, freshnessSql } from "../lib/time.js";
 
 const idParam = z.object({ id: z.string().uuid() });
 
@@ -33,14 +34,8 @@ const evidencePatch = evidenceBody.partial().strict();
  * can never disagree.
  */
 const FRESHNESS = `
-  case
-    when e.collected_date is null then 'unknown'
-    when e.collected_date > date('now','-30 days') then 'fresh'
-    when e.collected_date > date('now','-60 days') then 'ageing'
-    when e.collected_date > date('now','-90 days') then 'due'
-    else 'stale'
-  end as freshness,
-  cast(julianday('now') - julianday(e.collected_date) as integer) as age_days`;
+  ${freshnessSql("e.collected_date")} as freshness,
+  ${ageDaysSql("e.collected_date")} as age_days`;
 
 /** Linked control ids, as a JSON array SQLite can build in one pass. */
 const CONTROL_IDS = `
@@ -98,13 +93,7 @@ export async function evidenceRoutes(app: FastifyInstance): Promise<void> {
   /** Registered before /:id so the literal path wins. */
   app.get("/api/v1/evidence/summary", { preHandler: canRead }, async () => {
     const { rows: fresh } = await query<{ freshness: string; n: number }>(
-      `select case
-                when e.collected_date is null then 'unknown'
-                when e.collected_date > date('now','-30 days') then 'fresh'
-                when e.collected_date > date('now','-60 days') then 'ageing'
-                when e.collected_date > date('now','-90 days') then 'due'
-                else 'stale'
-              end as freshness,
+      `select ${freshnessSql("e.collected_date")} as freshness,
               count(*) as n
          from evidence e group by freshness`,
     );

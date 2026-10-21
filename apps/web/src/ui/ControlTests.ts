@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import { html } from "./html.js";
 import { controlTests, type ControlTest } from "../persistence/apiClient.js";
+import { localDay } from "./format.js";
 
 /**
  * "We tested this on the 3rd, it passed, Priya did it."
@@ -28,7 +29,7 @@ export function ControlTests({ controlId, canEdit, onChange }: {
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDay();
   const [draft, setDraft] = useState({ testedOn: today, tester: "", result: "Pass", note: "" });
 
   async function load(): Promise<void> {

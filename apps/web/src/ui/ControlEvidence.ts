@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import { html } from "./html.js";
 import { evidence as api, type Evidence } from "../persistence/apiClient.js";
+import { localDay } from "./format.js";
 
 /**
  * The proof attached to one control.
@@ -95,7 +96,7 @@ export function ControlEvidence({
         name: file.name.replace(/\.[^.]+$/, ""),
         type: "Document",
         owner: "",
-        collectedDate: new Date().toISOString().slice(0, 10),
+        collectedDate: localDay(),
         nextReview: null,
         notes: `Attached from ${controlRef}.`,
         controlIds: [controlId],
@@ -109,7 +110,7 @@ export function ControlEvidence({
         name: draft.name.trim(),
         type: draft.type,
         owner: draft.owner.trim(),
-        collectedDate: new Date().toISOString().slice(0, 10),
+        collectedDate: localDay(),
         nextReview: null,
         notes: "",
         controlIds: [controlId],

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { canRead } from "../auth/rbac.js";
 import { compareRefs } from "../lib/refs.js";
 import { notFound } from "../lib/errors.js";
+import { ageDaysSql, STALE_DAYS } from "../lib/time.js";
 
 /**
  * The golden thread: every risk, the controls that treat it, and the proof
@@ -21,7 +22,7 @@ import { notFound } from "../lib/errors.js";
  */
 
 /** Older than this, proof no longer shows the control working now. */
-export const STALE_DAYS = 90;
+export { STALE_DAYS };
 
 interface ControlRow { id: string; ref: string; title: string; theme: string; status: string; owner: string; justification: string }
 interface RiskRow { id: string; seq: number; title: string; treatment: string; status: string; owner: string }
@@ -35,7 +36,7 @@ export async function threadRoutes(app: FastifyInstance): Promise<void> {
       query<RiskRow>("select id, seq, title, treatment, status, owner from risks order by seq"),
       query<EvidenceRow>(
         `select id, name, collected_date,
-                cast(julianday(date('now')) - julianday(collected_date) as integer) as age_days
+                ${ageDaysSql("collected_date")} as age_days
            from evidence
           where id in (select evidence_id from evidence_controls)`,
       ),
@@ -86,7 +87,7 @@ export async function threadRoutes(app: FastifyInstance): Promise<void> {
         [id],
       ),
       query<{ name: string; age_days: number | null }>(
-        `select e.name, cast(julianday(date('now')) - julianday(e.collected_date) as integer) as age_days
+        `select e.name, ${ageDaysSql("e.collected_date")} as age_days
            from evidence_controls ec join evidence e on e.id = ec.evidence_id
           where ec.control_id = $1 order by e.collected_date desc`,
         [id],

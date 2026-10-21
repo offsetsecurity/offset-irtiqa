@@ -2,6 +2,7 @@ import Database, { type Database as SqliteDatabase } from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { config } from "../config.js";
+import { todayIso } from "../lib/time.js";
 
 /**
  * SQLite, via better-sqlite3.
@@ -42,6 +43,11 @@ db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");
 // Durable enough with WAL, and much faster than FULL.
 db.pragma("synchronous = NORMAL");
+
+// today() in SQL is the organisation's today, the same date todayIso() gives
+// in code. date('now') would be UTC's, which is a day behind from midnight
+// until UTC catches up anywhere east of Greenwich.
+db.function("today", { deterministic: false }, () => todayIso());
 
 export interface QueryResult<T = Record<string, unknown>> {
   rows: T[];

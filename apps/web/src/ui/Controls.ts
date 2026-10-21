@@ -5,10 +5,7 @@ import { controls, type Control, type ControlStatus, type Pack } from "../persis
 import { ControlDetail } from "./ControlDetail.js";
 import type { FixTarget } from "./ControlFix.js";
 import { useTarget, settle, goBack, type Target } from "./deepLink.js";
-import {
-  STATUS_ORDER, STATUS_LABEL, STATUS_PILL, MATURITY_LEVELS, maturityColour,
-  themeColor, since, pct, plural,
-} from "./format.js";
+import { STATUS_ORDER, STATUS_LABEL, STATUS_PILL, MATURITY_LEVELS, maturityColour, themeColor, since, pct, plural, localDay } from "./format.js";
 
 /**
  * The controls register — the screen people actually spend their day in.
@@ -29,9 +26,9 @@ const DEFAULT_TARGET = 3;
  */
 function dueClass(due: string | null): string {
   if (!due) return "muted";
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDay();
   if (due < today) return "due overdue";
-  const soon = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+  const soon = localDay(7);
   return due <= soon ? "due soon" : "due";
 }
 

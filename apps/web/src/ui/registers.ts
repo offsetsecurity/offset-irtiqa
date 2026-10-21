@@ -5,6 +5,7 @@ import {
   assets, policies, tasks, incidents, findings, vendors, training, objectives, parties,
   reviews, communications, type RegisterRow,
 } from "../persistence/apiClient.js";
+import { localDay } from "./format.js";
 
 /**
  * The five Phase 3 registers, as configuration for `Register.ts`.
@@ -81,7 +82,7 @@ const dueCell = <T extends RegisterRow>(key: string, doneWhen: (r: T) => boolean
   cell: (r) => {
     const value = r[key] as string | null;
     if (!value) return html`<span class="muted">—</span>`;
-    const overdue = !doneWhen(r) && value < new Date().toISOString().slice(0, 10);
+    const overdue = !doneWhen(r) && value < localDay();
     return overdue
       ? html`<span style="color:var(--red);font-weight:700">${value}</span>`
       : html`<span class="muted">${value}</span>`;
@@ -266,7 +267,7 @@ export const incidentRegister: RegisterSpec<RegisterRow> = {
     { key: "riskIds", label: "Which risks it realised", kind: "links", source: "risks", wide: true },
   ],
   blank: () => ({
-    title: "", detectedDate: new Date().toISOString().slice(0, 10), owner: "",
+    title: "", detectedDate: localDay(), owner: "",
     severity: "Medium", status: "Open", description: "", controlIds: [], riskIds: [],
   }),
   toInput: (r) => ({

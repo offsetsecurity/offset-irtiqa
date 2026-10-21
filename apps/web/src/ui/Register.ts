@@ -6,7 +6,7 @@ import { Modal, Field } from "./Modal.js";
 import type { RegisterApi, RegisterRow, PolicyAcknowledgement, Attachment } from "../persistence/apiClient.js";
 import { attachments as attachmentsApi } from "../persistence/apiClient.js";
 import { policyAcknowledgements } from "../persistence/apiClient.js";
-import { since } from "./format.js";
+import { since, localDay } from "./format.js";
 
 /**
  * A register screen: toolbar, table, add/edit dialog.
@@ -97,7 +97,7 @@ function Acknowledgements({ policyId, version, entries, canEdit, onChange }: {
   onChange: (next: PolicyAcknowledgement[]) => void;
 }): VNode {
   const [person, setPerson] = useState("");
-  const [on, setOn] = useState(() => new Date().toISOString().slice(0, 10));
+  const [on, setOn] = useState(() => localDay());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -508,7 +508,7 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
         return value ?? "";
       });
     });
-    const stamp = new Date().toISOString().slice(0, 10);
+    const stamp = localDay();
     download(`${spec.plural.toLowerCase().replace(/\s+/g, "-")}-${stamp}.csv`, toCsv(headers, body));
   }
 

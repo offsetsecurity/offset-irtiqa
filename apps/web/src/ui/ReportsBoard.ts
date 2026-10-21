@@ -4,7 +4,7 @@ import { html } from "./html.js";
 import { reports, branding, organisation, type ReportInfo, type BrandLogo } from "../persistence/apiClient.js";
 import { ACCEPT, MAX_BYTES, readFile } from "./Branding.js";
 import { Icon, type IconName } from "./icons.js";
-import { since } from "./format.js";
+import { since, localDay } from "./format.js";
 import { zipFiles } from "./zip.js";
 
 /**
@@ -186,7 +186,7 @@ export function ReportsBoard({ isAdmin, scored }: { isAdmin: boolean; scored: bo
         files.push({ name: filename, blob });
       }
       setAll({ done: list.length, total: list.length });
-      save(await zipFiles(files), `reports-${new Date().toISOString().slice(0, 10)}.zip`);
+      save(await zipFiles(files), `reports-${localDay()}.zip`);
       load();
     } catch (err) {
       setAllError((err as Error).message);

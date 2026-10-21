@@ -7,6 +7,7 @@ import {
   type Programme, type RegisterRow,
 } from "../persistence/apiClient.js";
 import { CONTEXT_LIBRARY, RISK_METHOD_TEMPLATE } from "./contextLibrary.js";
+import { localDay } from "./format.js";
 
 /**
  * The ISMS on one page: clauses 4.1 to 6.2, the part of ISO 27001 an auditor
@@ -126,7 +127,7 @@ export function Isms({ canEdit }: { canEdit: boolean }): VNode {
     if (ok) setLibrary(false);
   };
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDay();
   const certDirty = JSON.stringify(cert) !== JSON.stringify(certOf(prog));
 
   return html`<div class="isms">

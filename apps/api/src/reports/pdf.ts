@@ -9,6 +9,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { product } from "../config.js";
+import { stampLocal } from "../lib/time.js";
 
 /**
  * PDF generation.
@@ -422,7 +423,8 @@ export async function probeLogo(kind: "image" | "svg", data: string): Promise<bo
  * that cannot say when it was run is not evidence of anything.
  */
 export function buildDocument(meta: DocMeta, body: Content[]): TDocumentDefinitions {
-  const stamp = new Date().toISOString().replace("T", " ").slice(0, 16) + " UTC";
+  // In the organisation's zone, named, so "Generated 03:37" is the time on the reader's clock.
+  const stamp = stampLocal();
 
   // Wrapped in a stack so the spacing below it can be set without having to
   // widen the image/svg union by hand.

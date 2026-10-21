@@ -6,6 +6,7 @@ import { query } from "../db/pool.js";
 import { canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
 import { badRequest, notFound } from "../lib/errors.js";
+import { todayIso } from "../lib/time.js";
 
 /**
  * The five Phase 3 registers, each one a configuration of the shared CRUD
@@ -168,7 +169,7 @@ export async function policyAcknowledgementRoutes(app: FastifyInstance): Promise
     const person = body.person.trim();
     if (!person) throw badRequest("Say who acknowledged it.");
     const version = (body.version ?? policy.version).trim();
-    const on = body.acknowledgedOn ?? new Date().toISOString().slice(0, 10);
+    const on = body.acknowledgedOn ?? todayIso();
 
     // Checked here rather than left to the unique index, so the answer is a
     // sentence a person can act on instead of a constraint name.

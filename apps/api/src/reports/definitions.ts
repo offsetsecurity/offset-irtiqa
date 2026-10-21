@@ -8,6 +8,7 @@ import { loadBranding } from "../routes/settings.js";
 import { buildDocument, renderPdf, kpiRow, table, safe, barChart, stackedBar, radar, heatMap } from "./pdf.js";
 import { readPack } from "../lib/pack.js";
 import { boardPdf } from "./board.js";
+import { freshnessSql, staleSql, todayIso } from "../lib/time.js";
 
 /**
  * The report catalogue.
@@ -284,7 +285,7 @@ const executiveSummary: ReportSpec = {
     const ev = await query<{ total: number; stale: number; gaps: number }>(
       `select (select count(*) from evidence) as total,
               (select count(*) from evidence
-                where collected_date is null or collected_date <= date('now','-90 days')) as stale,
+                where ${staleSql("collected_date")}) as stale,
               (select count(*) from controls c
                 where c.status = 'implemented'
                   and not exists (select 1 from evidence_controls ec where ec.control_id = c.id)) as gaps`,
@@ -293,9 +294,9 @@ const executiveSummary: ReportSpec = {
 
     const overdue = await query<{ tasks: number; findings: number }>(
       `select (select count(*) from tasks
-                where status <> 'Done' and due_date is not null and due_date < date('now')) as tasks,
+                where status <> 'Done' and due_date is not null and due_date < today()) as tasks,
               (select count(*) from findings
-                where status <> 'Closed' and due_date is not null and due_date < date('now')) as findings`,
+                where status <> 'Closed' and due_date is not null and due_date < today()) as findings`,
     );
     const od = overdue.rows[0] ?? { tasks: 0, findings: 0 };
 
@@ -757,13 +758,7 @@ const evidenceRegister: ReportSpec = {
       next_review: string | null; freshness: string; refs: string;
     }>(
       `select e.name, e.type, e.owner, e.collected_date, e.next_review,
-              case
-                when e.collected_date is null then 'No date'
-                when e.collected_date > date('now','-30 days') then 'Fresh'
-                when e.collected_date > date('now','-60 days') then 'Ageing'
-                when e.collected_date > date('now','-90 days') then 'Due'
-                else 'Stale'
-              end as freshness,
+              ${freshnessSql("e.collected_date", ["Fresh", "Ageing", "Due", "Stale", "No date"])} as freshness,
               coalesce((select group_concat(c.ref, ', ')
                           from evidence_controls ec
                           join controls c on c.id = ec.control_id
@@ -966,7 +961,7 @@ const managementReviewPack: ReportSpec = {
         ),
         one<{ title: string; severity: string; status: string; detected_date: string | null }>(
           `select title, severity, status, detected_date from incidents
-            where detected_date is null or detected_date > date('now','-365 days')
+            where detected_date is null or detected_date > date(today(), '-365 days')
             order by detected_date desc limit 20`,
         ),
         one<{ title: string; type: string; status: string; owner: string; due_date: string | null }>(
@@ -985,7 +980,7 @@ const managementReviewPack: ReportSpec = {
         ),
         one<{ n: number; stale: number }>(
           `select count(*) as n,
-                  sum(case when collected_date is null or collected_date <= date('now','-90 days')
+                  sum(case when ${staleSql("collected_date")}
                            then 1 else 0 end) as stale
              from evidence`,
         ),
@@ -1115,7 +1110,7 @@ const documentControlList: ReportSpec = {
         order by p.name`,
     );
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayIso();
     const approved = rows.filter((r) => r.status === "Approved").length;
     const overdue = rows.filter((r) => r.review_date && r.review_date < today).length;
 

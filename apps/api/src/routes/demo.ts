@@ -5,6 +5,7 @@ import { isAdmin, requireAuth } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
 import { badRequest } from "../lib/errors.js";
 import { hasFeature, readPack } from "../lib/pack.js";
+import { dayIso } from "../lib/time.js";
 
 /**
  * Example data: a small, coherent organisation, and a way to remove it again.
@@ -51,7 +52,7 @@ interface Row {
 }
 
 const today = (offsetDays = 0): string =>
-  new Date(Date.now() + offsetDays * 86_400_000).toISOString().slice(0, 10);
+  dayIso(offsetDays);
 
 /**
  * One small organisation: a software company with a customer portal, a payroll

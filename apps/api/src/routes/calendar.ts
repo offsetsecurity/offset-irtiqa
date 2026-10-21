@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { query } from "../db/pool.js";
 import { canRead } from "../auth/rbac.js";
+import { todayIso, dayIso } from "../lib/time.js";
 
 /**
  * Everything with a date on it, in one list.
@@ -35,7 +36,7 @@ const params = z.object({
 export async function calendarRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/v1/calendar", { preHandler: canRead }, async (request) => {
     const { days } = params.parse(request.query);
-    const horizon = new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+    const horizon = dayIso(days);
 
     // One query per source, each already shaped as a calendar item. Kept apart
     // rather than union-ed in SQL because each has its own idea of "still open".
@@ -116,8 +117,8 @@ export async function calendarRoutes(app: FastifyInstance): Promise<void> {
 
     items.sort((a, b) => (a.due < b.due ? -1 : a.due > b.due ? 1 : a.title.localeCompare(b.title)));
 
-    const today = new Date().toISOString().slice(0, 10);
-    const in30 = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
+    const today = todayIso();
+    const in30 = dayIso(30);
     return {
       today,
       horizon,

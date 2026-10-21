@@ -5,6 +5,7 @@ import { audit } from "../audit/audit.js";
 import { config } from "../config.js";
 import { query } from "../db/pool.js";
 import { HttpError } from "../lib/errors.js";
+import { todayIso } from "../lib/time.js";
 
 /**
  * The audit trail, read only: who did what, when, from where, and what it
@@ -268,7 +269,7 @@ export async function auditRoutes(app: FastifyInstance): Promise<void> {
       after: { rows: rows.length, filters: f },
     });
     const body = `﻿${[CSV_HEADERS.map(cell).join(","), ...rows.map(csvLine)].join("\r\n")}\r\n`;
-    const day = new Date().toISOString().slice(0, 10);
+    const day = todayIso();
     return reply
       .header("content-type", "text/csv; charset=utf-8")
       .header("content-disposition", `attachment; filename="audit-trail-${day}.csv"`)

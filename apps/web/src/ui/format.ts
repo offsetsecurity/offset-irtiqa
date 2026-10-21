@@ -90,3 +90,15 @@ export const RISK_BAND_COLOR: Record<string, string> = {
   elevated: "#d97706",
   acceptable: "#16a34a",
 };
+
+/**
+ * A date, YYYY-MM-DD, on this computer's own calendar: the date its date picker
+ * shows. toISOString() would give UTC's date, which east of Greenwich is still
+ * yesterday for the first hours of the day.
+ */
+export function localDay(offsetDays = 0): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const pad = (n: number): string => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}

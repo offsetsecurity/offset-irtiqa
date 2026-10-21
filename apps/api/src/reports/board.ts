@@ -4,6 +4,7 @@ import { MATURITY_DEFAULT_TARGET, product } from "../config.js";
 import { packMeta, readPack, themeOrder } from "../lib/pack.js";
 import { loadBranding, loadOrganisation } from "../routes/settings.js";
 import { boardLogo, renderPdf, safe } from "./pdf.js";
+import { todayIso, dayIso, staleSql, stampLocal } from "../lib/time.js";
 
 /**
  * The executive summary, written for a board.
@@ -72,8 +73,8 @@ interface RiskRow {
   accepted_by: string | null; review_date: string | null; created_at: string;
 }
 
-const today = (): string => new Date().toISOString().slice(0, 10);
-const addDays = (days: number): string => new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+const today = (): string => todayIso();
+const addDays = (days: number): string => dayIso(days);
 const longDate = (iso: string): string =>
   new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 const shortDate = (iso: string): string =>
@@ -193,7 +194,7 @@ async function gather() {
   );
   const { rows: ev } = await query<{ total: number; stale: number; bare: number; policies: number }>(
     `select (select count(*) from evidence) as total,
-            (select count(*) from evidence where collected_date is null or collected_date <= date('now','-90 days')) as stale,
+            (select count(*) from evidence where ${staleSql("collected_date")}) as stale,
             (select count(*) from controls c where c.status = 'implemented'
                and not exists (select 1 from evidence_controls ec where ec.control_id = c.id)) as bare,
             (select count(*) from policies where review_date is not null and review_date < $1) as policies`,
@@ -799,7 +800,7 @@ async function boardDocument(generatedBy: string, meta: Meta, tight: number): Pr
     margin: [0, 14, 0, 0],
   } as unknown as Content;
 
-  const stampTime = new Date().toISOString().slice(11, 16);
+  const stampTime = stampLocal().slice(11);
   const doc: TDocumentDefinitions = {
     pageSize: "A4",
     pageMargins: [SIDE, 52, SIDE, 58],
@@ -827,7 +828,7 @@ async function boardDocument(generatedBy: string, meta: Meta, tight: number): Pr
         { canvas: [{ type: "line", x1: 0, y1: 0, x2: WIDTH, y2: 0, lineWidth: 0.5, lineColor: LINE }], margin: [0, 0, 0, 5] },
         {
           columns: [
-            { text: safe(`Board confidential  ·  built from live data on ${longDate(d)} at ${stampTime} UTC by ${generatedBy}  ·  recorded in the audit log`), fontSize: 6.8, color: MUTED, width: "*" },
+            { text: safe(`Board confidential  ·  built from live data on ${longDate(d)} at ${stampTime} by ${generatedBy}  ·  recorded in the audit log`), fontSize: 6.8, color: MUTED, width: "*" },
             { text: `${page} / ${pages}`, font: SERIF, bold: true, fontSize: 9, color: NAVY, width: "auto" },
           ],
         },
