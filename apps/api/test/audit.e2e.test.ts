@@ -192,14 +192,20 @@ maybe("audit trail", () => {
   });
 
   describe("the address it records", () => {
+    const lastFailedSignInAddress = async (): Promise<string | null> =>
+      (await query<{ ip: string | null }>(
+        "select ip from audit_log where action = 'Login failed' order by id desc limit 1",
+      )).rows[0]?.ip ?? null;
+
     it("is the caller's own, not one a caller names", async () => {
       await app.inject({
         method: "POST", url: "/api/v1/auth/login", remoteAddress: "10.9.9.9",
         headers: { "x-forwarded-for": "203.0.113.7" },
         payload: { username: "nobody-spoof", password: "x" },
       });
-      const [entry] = (await list("owner", "?q=nobody-spoof")).json().entries;
-      expect(entry.ip).toBe("10.9.9.9");
+      // A made-up name is recorded as "unknown user", so the newest failed
+      // sign-in is the one to read.
+      expect(await lastFailedSignInAddress()).toBe("10.9.9.9");
     });
 
     it("comes from a proxy on this machine, which is trusted", async () => {
@@ -208,8 +214,7 @@ maybe("audit trail", () => {
         headers: { "x-forwarded-for": "203.0.113.8" },
         payload: { username: "nobody-proxied", password: "x" },
       });
-      const [entry] = (await list("owner", "?q=nobody-proxied")).json().entries;
-      expect(entry.ip).toBe("203.0.113.8");
+      expect(await lastFailedSignInAddress()).toBe("203.0.113.8");
     });
   });
 

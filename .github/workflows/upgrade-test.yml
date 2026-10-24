@@ -20,20 +20,29 @@ jobs:
   windows:
     name: Windows installer upgrade
     runs-on: windows-latest
+    # The two release names reach the scripts as environment variables, never
+    # pasted into the script text, so whatever is typed into the form is only
+    # ever a value. Each is also checked against the shape of a tag first.
     env:
       GH_TOKEN: ${{ github.token }}
+      OLD: ${{ inputs.old }}
+      NEW: ${{ inputs.new }}
+      REPO: ${{ github.repository }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Download both installers
         shell: pwsh
         run: |
-          gh release download "${{ inputs.old }}" -R "${{ github.repository }}" -p "*-setup.exe" -O old-setup.exe
-          gh release download "${{ inputs.new }}" -R "${{ github.repository }}" -p "*-setup.exe" -O new-setup.exe
+          foreach ($tag in $env:OLD, $env:NEW) {
+            if ($tag -notmatch '^v\d+\.\d+\.\d+$') { throw "Not a release tag: $tag" }
+          }
+          gh release download $env:OLD -R $env:REPO -p "*-setup.exe" -O old-setup.exe
+          gh release download $env:NEW -R $env:REPO -p "*-setup.exe" -O new-setup.exe
       - name: Install the old one, add data, upgrade, check
         shell: pwsh
-        run: ./deploy/windows/upgrade-test.ps1 -Old "$PWD/old-setup.exe" -New "$PWD/new-setup.exe" -Version ("${{ inputs.new }}".TrimStart("v"))
+        run: ./deploy/windows/upgrade-test.ps1 -Old "$PWD/old-setup.exe" -New "$PWD/new-setup.exe" -Version $env:NEW.TrimStart("v")
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: upgrade-test-logs
           path: |

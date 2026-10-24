@@ -75,6 +75,20 @@ export function safeFileName(raw: string): string {
   return cleaned || "attachment";
 }
 
+/**
+ * The Content-Disposition header for downloading a stored file.
+ *
+ * Node refuses a header value with anything outside Latin-1 in it, so a name
+ * in Arabic, Chinese or Hindi, or with an emoji, threw on the way out: the
+ * file uploaded and could never be downloaded again. The quoted name is
+ * therefore plain ASCII, for the oldest clients, and the real name travels
+ * in filename* (RFC 6266), which every current browser uses instead.
+ */
+export function attachmentHeader(name: string): string {
+  const ascii = name.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "") || "attachment";
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(name)}`;
+}
+
 export class UploadTooLarge extends Error {
   constructor(public readonly limitBytes: number) {
     super(`That file is larger than the ${Math.round(limitBytes / 1024 / 1024)} MB limit.`);

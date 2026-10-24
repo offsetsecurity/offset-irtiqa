@@ -17,6 +17,35 @@ Every release is numbered x.y.z, for example 1.4.2:
 
 ## [Unreleased]
 
+### Security
+Fixes from the security audit of 24 October 2026. Nothing critical or high
+was found.
+- **Files with Arabic, Chinese, Hindi or emoji names can be downloaded.** They
+  uploaded, but the download failed with a server error, because the name went
+  into a header that only takes Western letters. The real name now travels in
+  the part of the header made for it, on evidence and on register files alike.
+- **A wrong sign-in takes the same time whether or not the username exists.**
+  A made-up name used to be refused about twenty times faster, which told
+  anyone timing the replies which names were real.
+- **A password typed into the username box is no longer kept.** A failed
+  sign-in records the name only when it is a real account, and "unknown user"
+  otherwise, in the audit trail and in the sign-in log.
+- **Linking to something that no longer exists says so,** instead of "Something
+  went wrong". Lists of links are limited to 500.
+- **The page may not ask for the camera, microphone or location**
+  (Permissions-Policy header).
+- **Components with published fixes updated:** zod 4 (from 3), nodemailer
+  10.1, Fastify 5.12.6, fast-uri 3.1.9 and 4.2.3; for development, Vite 7.3.7
+  and Vitest 4.1.12.
+- **Smaller Docker images.** npm, Yarn and corepack are removed, development
+  tools no longer slip into the image, the base packages are brought up to
+  date, and the updater's Docker CLI is pinned to a checked build.
+- **Build tools pinned.** Every GitHub Action is pinned to an exact commit, and
+  the upgrade-test workflow no longer pastes its inputs into a script.
+- **SECURITY.md describes what the product does today.** It listed
+  multi-factor sign-in, single sign-on and syslog forwarding, which the product
+  does not have.
+
 ### Removed
 - **The offline Docker bundle.** It packed the image into a 133 MB folder for a
   server with no internet at all, and it was a third delivery track to keep

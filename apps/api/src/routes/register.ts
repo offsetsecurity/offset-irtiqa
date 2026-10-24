@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import { patchOf } from "../lib/schema.js";
 import { query, withTransaction, type Sql } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
@@ -116,7 +117,7 @@ async function replaceLinks(
 
 export function registerRoutes<T extends z.ZodRawShape>(spec: RegisterSpec<T>) {
   const createBody = z.object(spec.shape);
-  const patchBody = createBody.partial().strict();
+  const patchBody = patchOf(createBody);
   const base = `/api/v1/${spec.path}`;
   const one = spec.key ?? spec.label.toLowerCase();
   const select =

@@ -53,7 +53,7 @@ const patchBody = z
     // Product-specific fields (CSF profile statements and Tiers, 800-53
     // parameter values and origination) are merged into the JSON attrs column
     // rather than fanning the schema out three ways.
-    attrs: z.record(z.unknown()).optional(),
+    attrs: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 

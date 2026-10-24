@@ -15,7 +15,9 @@
     "overrides": {
       "brace-expansion@^5.0.0": "5.0.12",
       "brace-expansion@^1.1.0": "1.1.21",
-      "nodemailer": "^10.0.16",
+      "nodemailer": "^10.1.4",
+      "fast-uri@^3.0.0": "3.1.9",
+      "fast-uri@^4.0.0": "4.2.3",
       "source-map-js": "^1.2.2"
     }
   },

@@ -17,7 +17,7 @@ const patchBody = z
   .object({
     scope: z.string().max(20_000).optional(),
     methodology: z.string().max(20_000).optional(),
-    attrs: z.record(z.unknown()).optional(),
+    attrs: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 

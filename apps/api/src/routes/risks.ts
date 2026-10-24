@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import { patchOf } from "../lib/schema.js";
 import { query, withTransaction } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
@@ -26,10 +27,10 @@ const riskBody = z.object({
   reviewDate: z.string().date().nullish(),
   acceptedBy: z.string().max(200).nullish(),
   acceptedDate: z.string().date().nullish(),
-  controlIds: z.array(z.string().uuid()).default([]),
+  controlIds: z.array(z.string().uuid()).max(500).default([]),
 });
 
-const riskPatch = riskBody.partial().strict();
+const riskPatch = patchOf(riskBody);
 
 /** Inherent and residual scores, plus the band the heat map colours by. */
 const SCORES = `

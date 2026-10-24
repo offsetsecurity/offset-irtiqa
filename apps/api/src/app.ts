@@ -126,6 +126,12 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
     hsts: isProd ? { maxAge: 31_536_000, includeSubDomains: true } : false,
   });
 
+  // Helmet has no option for this one. The product never needs a camera, a
+  // microphone or anybody's location, so the page is told it may not ask.
+  app.addHook("onRequest", async (_request, reply) => {
+    reply.header("permissions-policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
+  });
+
   await app.register(cookie, { secret: config.SESSION_SECRET });
 
   // Uploaded evidence. The limit is declared here so the connection is cut
@@ -185,6 +191,14 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
     const status = (err as { statusCode?: unknown }).statusCode;
     if (typeof status === "number" && status >= 400 && status < 500) {
       return reply.code(status).send({ error: (err as Error).message });
+    }
+    // A link to a control, risk or record that does not exist, perhaps
+    // deleted in another window. The database refuses it and nothing was
+    // written; it is the request that was wrong, not the server.
+    if ((err as { code?: unknown }).code === "SQLITE_CONSTRAINT_FOREIGNKEY") {
+      return reply.code(400).send({
+        error: "Something this links to no longer exists. Refresh the page and try again.",
+      });
     }
     request.log.error({ err }, "unhandled error");
     // Never leak internals to the client.

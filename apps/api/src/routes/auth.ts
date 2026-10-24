@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { query } from "../db/pool.js";
 import { nowIso } from "../lib/time.js";
 import { hashPassword, needsRehash, validatePasswordStrength, verifyPassword } from "../auth/password.js";
@@ -22,6 +22,14 @@ import {
 
 const MAX_FAILED = 5;
 const LOCK_MINUTES = 15;
+
+/**
+ * A hash of a password nobody knows, made once with the same settings as real
+ * ones, so checking against it costs what checking a real account costs.
+ */
+let standIn: Promise<string> | undefined;
+const standInHash = (): Promise<string> =>
+  (standIn ??= hashPassword(randomBytes(24).toString("base64url")));
 
 const loginBody = z.object({
   username: z.string().min(1).max(100),
@@ -207,14 +215,19 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     );
     const row = rows[0];
 
+    // What the trail records as the name tried. Only a real account's name:
+    // people type their password into the username box often enough that
+    // whatever text arrived there must not be kept where auditors can read it.
+    const tried = row ? row.username : "unknown user";
+
     // One generic message for every failure mode — do not leak which part was wrong.
     const reject = async (reason: string): Promise<never> => {
-      await auditAnonymous(address, "Login failed", `${body.username}: ${reason}`);
-      noteSignIn("FAILED", body.username, address, reason);
+      await auditAnonymous(address, "Login failed", `${tried}: ${reason}`);
+      noteSignIn("FAILED", tried, address, reason);
       // Recorded once, at the moment it happens, rather than for every
       // refusal after it.
       if (noteAddressFailure(address) === ADDRESS_MAX_FAILED) {
-        noteSignIn("BLOCKED", body.username, address, `${ADDRESS_MAX_FAILED} failed sign-ins in ${ADDRESS_WINDOW_MINUTES} minutes; this address is paused`);
+        noteSignIn("BLOCKED", tried, address, `${ADDRESS_MAX_FAILED} failed sign-ins in ${ADDRESS_WINDOW_MINUTES} minutes; this address is paused`);
         await auditAnonymous(
           address,
           "Sign-in blocked for this address",
@@ -224,7 +237,14 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       throw new HttpError(401, "Incorrect username or password.");
     };
 
-    if (!row || !row.password_hash) return reject("no such user");
+    // A name with no account behind it still pays for one Argon2id check.
+    // Without it a wrong guess came back in a millisecond for a made-up name
+    // and in tens of milliseconds for a real one, which told anybody timing
+    // the replies which usernames exist.
+    if (!row || !row.password_hash) {
+      await verifyPassword(await standInHash(), body.password);
+      return reject("no such user");
+    }
     if (row.disabled) return reject("account disabled");
     const locked = Boolean(row.locked_until && row.locked_until > nowIso());
 

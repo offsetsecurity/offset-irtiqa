@@ -19,8 +19,8 @@ const MAX_TEXT = 5_000;
 
 const body = z
   .object({
-    values: z.record(z.string().max(MAX_TEXT)).default({}),
-    lists: z.record(z.array(z.array(z.string().max(MAX_TEXT)).max(20)).max(100)).default({}),
+    values: z.record(z.string(), z.string().max(MAX_TEXT)).default({}),
+    lists: z.record(z.string(), z.array(z.array(z.string().max(MAX_TEXT)).max(20)).max(100)).default({}),
   })
   .strict();
 

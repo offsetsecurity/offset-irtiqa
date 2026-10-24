@@ -15,7 +15,7 @@ import { todayIso } from "../lib/time.js";
 
 const text = (max: number) => z.string().max(max).default("");
 const date = () => z.string().date().nullish();
-const ids = () => z.array(z.string().uuid()).default([]);
+const ids = () => z.array(z.string().uuid()).max(500).default([]);
 
 const controlLink = (self: string, table: string) => ({
   table,

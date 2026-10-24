@@ -7,7 +7,7 @@ import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js"
 import { audit } from "../audit/audit.js";
 import { badRequest, notFound } from "../lib/errors.js";
 import { config } from "../config.js";
-import { deleteStored, pathOfStored, storeFile, UploadTooLarge } from "../lib/files.js";
+import { attachmentHeader, deleteStored, pathOfStored, storeFile, UploadTooLarge } from "../lib/files.js";
 
 /**
  * Files attached to register records: the signed contract on a supplier, the
@@ -144,11 +144,7 @@ export async function attachmentRoutes(app: FastifyInstance): Promise<void> {
 
     reply
       .header("content-type", "application/octet-stream")
-      .header(
-        "content-disposition",
-        `attachment; filename="${row.file_name.replace(/["\\]/g, "")}"; ` +
-          `filename*=UTF-8''${encodeURIComponent(row.file_name)}`,
-      )
+      .header("content-disposition", attachmentHeader(row.file_name))
       .header("x-content-type-options", "nosniff");
     return reply.send(createReadStream(path));
   });

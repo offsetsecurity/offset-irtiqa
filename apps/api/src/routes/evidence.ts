@@ -1,10 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import { createReadStream } from "node:fs";
 import {
-  deleteStored, pathOfStored, storeFile, UploadTooLarge,
+  attachmentHeader, deleteStored, pathOfStored, storeFile, UploadTooLarge,
 } from "../lib/files.js";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import { patchOf } from "../lib/schema.js";
 import { query, withTransaction } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
@@ -23,10 +24,10 @@ const evidenceBody = z.object({
   collectedDate: z.string().date().nullish(),
   nextReview: z.string().date().nullish(),
   notes: z.string().max(10_000).default(""),
-  controlIds: z.array(z.string().uuid()).default([]),
+  controlIds: z.array(z.string().uuid()).max(500).default([]),
 });
 
-const evidencePatch = evidenceBody.partial().strict();
+const evidencePatch = patchOf(evidenceBody);
 
 /**
  * The 30-60-90 freshness radar the product is built around: evidence ages, and
@@ -303,13 +304,7 @@ export async function evidenceRoutes(app: FastifyInstance): Promise<void> {
     const name = rows[0].file_name ?? "attachment";
     reply
       .header("content-type", "application/octet-stream")
-      // The quoted form for old clients, then RFC 5987 for anything since 2010,
-      // which is what actually carries a name with non-ASCII in it.
-      .header(
-        "content-disposition",
-        `attachment; filename="${name.replace(/["\\]/g, "")}"; ` +
-          `filename*=UTF-8''${encodeURIComponent(name)}`,
-      )
+      .header("content-disposition", attachmentHeader(name))
       .header("x-content-type-options", "nosniff");
 
     return reply.send(createReadStream(path));

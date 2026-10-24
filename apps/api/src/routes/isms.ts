@@ -17,7 +17,7 @@ import { registerRoutes } from "./register.js";
 
 const text = (max: number) => z.string().max(max).default("");
 const date = () => z.string().date().nullish();
-const ids = () => z.array(z.string().uuid()).default([]);
+const ids = () => z.array(z.string().uuid()).max(500).default([]);
 /** Where reminders go when the record's date comes. Empty means nobody is chased. */
 const email = () => z.union([z.literal(""), z.string().email("That is not an email address.")]).default("");
 

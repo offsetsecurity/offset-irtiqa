@@ -29,9 +29,15 @@ COPY apps/web/package.json apps/web/
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+# Then the production packages again from nothing, rather than `pnpm prune
+# --prod`. Pruning removed the links to the development tools but left vite and
+# vitest in node_modules/.pnpm, and they shipped in the image, where image
+# scanners reported their advisories against a product that never loads them.
+# The store already holds everything, so this reinstall needs no downloads.
 RUN pnpm --filter @offset/api build \
  && PRODUCT=${PRODUCT} pnpm --filter @offset/web build \
- && pnpm prune --prod
+ && rm -rf node_modules apps/*/node_modules \
+ && pnpm install --prod --frozen-lockfile --prefer-offline
 
 # ── runtime ─────────────────────────────────────────────────────────────────
 FROM node:24-alpine AS runtime
@@ -57,7 +63,16 @@ ENV NODE_ENV=production \
     ALLOW_INSECURE_NETWORK=true
 
 # dumb-init reaps zombies and forwards signals so shutdown is clean.
-RUN apk add --no-cache dumb-init tzdata \
+#
+# The base image's own packages are brought up to date, and npm, npx, yarn and
+# corepack are removed: the product runs `node` and nothing else, and npm
+# carries dozens of packages of its own whose advisories every image scan
+# reported.
+RUN apk upgrade --no-cache \
+ && apk add --no-cache dumb-init tzdata \
+ && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+           /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+           /usr/local/bin/yarn /usr/local/bin/yarnpkg /opt/yarn-* \
  && addgroup -g 10001 -S offset \
  && adduser -u 10001 -S offset -G offset
 
@@ -127,10 +142,17 @@ CMD ["node", "dist/server.js"]
 # signature checking it runs is byte-for-byte the code the application ships.
 # It runs as root because it needs the Docker socket, and it is the only
 # container given it. It has no web page and listens on nothing.
+#
+# The Docker CLI is pinned by digest, so a build takes exactly the copy that
+# was checked. Move it forward when Docker publishes a new one: their Go
+# toolchain fixes reach this container only that way, and it is the one that
+# holds the Docker socket.
+FROM docker:29.9.2-cli@sha256:5e6baf67325a79f64ed3bed6863954d5e05d0f3d4e57cbdb14809346814bbfdb AS docker-cli
+
 FROM runtime AS updater
 USER root
-COPY --from=docker:29-cli /usr/local/bin/docker /usr/local/bin/docker
-COPY --from=docker:29-cli /usr/local/libexec/docker/cli-plugins/docker-compose \
+COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
+COPY --from=docker-cli /usr/local/libexec/docker/cli-plugins/docker-compose \
      /usr/local/libexec/docker/cli-plugins/docker-compose
 HEALTHCHECK NONE
 CMD ["node", "dist/updater/docker.js"]
