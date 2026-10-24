@@ -50,6 +50,34 @@ proxy in front instead — the bottleneck is never this.
 Both containers mount all four. Giving them separate volumes would give you
 two databases and one of them would quietly be ignored.
 
+### Keeping the data in a folder you choose
+
+By default the four live in Docker's own storage. To keep them in a normal
+folder instead, where you can see and copy them, set this in `.env` before the
+first start:
+
+```
+OFFSET_DATA_DIR=D:/OffsetData/irtiqa        # Windows: forward slashes
+OFFSET_DATA_DIR=/srv/offset/irtiqa          # Linux
+```
+
+The folder then holds `data`, `evidence`, `backups` and `logs`, and updates
+keep using it. On Linux, give it to the application's user first:
+`sudo chown -R 10001:10001 /srv/offset/irtiqa`.
+
+Changing it on an install that already has data does not move the data. Take a
+backup and download it, set the folder, start again, then upload and restore
+the backup from the **Backups** screen.
+
+### Evidence files before 0.2.35
+
+Until 0.2.35 the image did not tell the application where the `evidence` volume
+was, so uploaded files were kept inside the container and an update lost them.
+From 0.2.35 they are kept in the volume. On its first start, 0.2.35 also puts
+back every missing file it can find in a backup: anything uploaded before the
+last nightly or manual backup comes back. **Before updating from an earlier
+version, take a manual backup from the Backups screen**, so nothing is missed.
+
 Backups are easiest from the **Backups** screen: take, download, upload and
 restore. The same full backup from the command line:
 

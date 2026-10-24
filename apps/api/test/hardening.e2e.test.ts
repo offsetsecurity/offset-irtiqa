@@ -136,6 +136,30 @@ maybe("security audit findings", () => {
     expect(JSON.stringify(risk)).toContain(control);
   });
 
+  // Docker installs before 0.2.35 lost uploads on every update.
+  it("puts back a document that went missing, from the newest backup that holds it", async () => {
+    const res = await uploadAndFetch("recover-me.pdf");
+    expect(res.status).toBe(200);
+    const { rows } = await query<{ id: string; file_key: string }>(
+      "select id, file_key from evidence where file_name = 'recover-me.pdf' order by created_at desc limit 1",
+    );
+    const { createBackup, recoverMissingFiles } = await import("../src/backup/service.js");
+    const { pathFor } = await import("../src/lib/files.js");
+    const { rm } = await import("node:fs/promises");
+    await createBackup("manual");
+    await rm(pathFor(rows[0]!.file_key));
+    expect((await send("GET", `/api/v1/evidence/${rows[0]!.id}/file`)).status).toBe(404);
+
+    const result = await recoverMissingFiles();
+    expect(result.recovered).toBeGreaterThanOrEqual(1);
+    const back = await send("GET", `/api/v1/evidence/${rows[0]!.id}/file`);
+    expect(back.status).toBe(200);
+    expect(await back.text()).toBe("%PDF-1.4 test");
+    // Run again, nothing more to put back. (Other suites leave records whose
+    // files they deleted on purpose, so "missing" need not be nought here.)
+    expect((await recoverMissingFiles()).recovered).toBe(0);
+  });
+
   // SEC-015
   it("turns off camera, microphone and location for the page", async () => {
     const policy = (await fetch(`${base}/`)).headers.get("permissions-policy") ?? "";

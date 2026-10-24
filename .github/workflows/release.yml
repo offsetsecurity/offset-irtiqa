@@ -215,8 +215,12 @@ jobs:
           path: dist/release
           merge-multiple: true
 
+      # The tag's own message. Checkout leaves the tag as a plain pointer to the
+      # commit, so without fetching the tag object itself this read the commit
+      # message, and the release page showed that instead of the notes.
       - name: Release notes
         run: |
+          git fetch --force --no-tags origin "refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
           git for-each-ref "refs/tags/${GITHUB_REF_NAME}" --format='%(contents)' > notes.md
           [ -s notes.md ] || echo "See CHANGELOG.md." > notes.md
           cat notes.md

@@ -62,17 +62,36 @@ async function hostInstallDir(): Promise<string> {
   const [me] = JSON.parse(inspect.stdout) as { Mounts: { Destination: string; Source: string }[] }[];
   const source = me?.Mounts.find((m) => m.Destination === INSTALL)?.Source;
   if (!source) throw new Error("could not find where the install folder is");
+  return enginePath(source);
+}
+
+/** A host folder as a Linux compose client must name it to the engine. */
+function enginePath(source: string): string {
   const windows = /^([A-Za-z]):[\\/](.*)$/.exec(source);
   return windows
     ? `/run/desktop/mnt/host/${windows[1]!.toLowerCase()}/${windows[2]!.replace(/\\/g, "/")}`
     : source;
 }
 
+/**
+ * OFFSET_DATA_DIR from .env, ready for compose run from in here.
+ *
+ * compose reads .env itself, but a Windows folder written there (D:/...)
+ * would reach it with the colon that splits a mount in two, so it is passed
+ * translated, which takes precedence over the file.
+ */
+async function hostDataDir(): Promise<Record<string, string>> {
+  const text = await readFile(join(INSTALL, ".env"), "utf8").catch(() => "");
+  const line = text.split(/\r?\n/).find((l) => l.startsWith("OFFSET_DATA_DIR="));
+  const value = line?.slice("OFFSET_DATA_DIR=".length).trim().replace(/^["']|["']$/g, "");
+  return value ? { OFFSET_DATA_DIR: enginePath(value) } : {};
+}
+
 async function compose(...args: string[]) {
   return run(
     "docker",
     ["compose", "-p", PROJECT, "-f", join(INSTALL, "compose.yaml"), "--project-directory", INSTALL, ...args],
-    { env: { ...process.env, OFFSET_INSTALL_DIR: await hostInstallDir() } },
+    { env: { ...process.env, OFFSET_INSTALL_DIR: await hostInstallDir(), ...(await hostDataDir()) } },
   );
 }
 
@@ -133,12 +152,14 @@ async function restoreDatabase(backup: string): Promise<void> {
  */
 async function replaceSelf(updaterRef: string): Promise<void> {
   const installSource = await hostInstallDir();
+  const dataDir = (await hostDataDir())["OFFSET_DATA_DIR"];
 
   const r = await run("docker", [
     "run", "-d", "--rm", "--name", `${PROJECT}-updater-swap`,
     "-v", "/var/run/docker.sock:/var/run/docker.sock",
     "-v", `${installSource}:/install`,
     "-e", `OFFSET_INSTALL_DIR=${installSource}`,
+    ...(dataDir ? ["-e", `OFFSET_DATA_DIR=${dataDir}`] : []),
     "--entrypoint", "docker",
     updaterRef,
     "compose", "-p", PROJECT, "-f", "/install/compose.yaml", "--project-directory", "/install",

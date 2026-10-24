@@ -4,6 +4,7 @@ import { captureCrashes, logStartupContext, recordCrash } from "./lib/logging.js
 import { migrate } from "./db/migrate.js";
 import { pool } from "./db/pool.js";
 import { seedIfEmpty } from "./db/seed.js";
+import { recoverMissingFiles } from "./backup/service.js";
 import { CertificateError, loadTls } from "./tls/certificate.js";
 
 async function main(): Promise<void> {
@@ -64,6 +65,18 @@ async function main(): Promise<void> {
   if (await seedIfEmpty()) {
     // eslint-disable-next-line no-console
     console.log("Seeded the framework pack into an empty database.");
+  }
+
+  // Documents lost from a Docker install before 0.2.35, put back from backups.
+  try {
+    const { missing, recovered } = await recoverMissingFiles();
+    if (missing) {
+      // eslint-disable-next-line no-console
+      console.log(`${missing} evidence file(s) were missing; ${recovered} recovered from backups.`);
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("Could not check for missing evidence files:", err);
   }
 
   const app = await buildApp(https ? { https } : {});

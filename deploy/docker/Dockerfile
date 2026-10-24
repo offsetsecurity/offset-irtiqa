@@ -97,7 +97,12 @@ COPY --from=build --chown=offset:offset /src/packs/${PRODUCT} ./apps/api/pack
 
 # Everything that has to outlive the container. Mount volumes over all four
 # or they die with it, and the first one is the database.
+#
+# EVIDENCE_DIR was missing until 0.2.35. Without it uploads went to
+# /app/apps/api/evidence, inside the container, and an update, which replaces
+# the container, took them with it.
 ENV DATABASE_URL=file:/app/data/offset.db \
+    EVIDENCE_DIR=/app/evidence \
     BACKUP_DIR=/app/backups \
     LOG_DIR=/app/logs \
     LOG_TO_FILE=true

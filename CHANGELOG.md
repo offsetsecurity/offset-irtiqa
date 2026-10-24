@@ -17,6 +17,21 @@ Every release is numbered x.y.z, for example 1.4.2:
 
 ## [Unreleased]
 
+### Fixed (0.2.35)
+- **Docker: uploaded evidence files survive updates.** The image never told the
+  application where the evidence volume was, so files were kept inside the
+  container, and each update, which replaces the container, lost them. They are
+  now kept in the volume.
+- **Missing files come back on their own.** On start-up the application looks
+  for documents the database refers to but the folder lacks, and restores each
+  from the newest backup that holds it.
+- **The release page shows the release notes,** not the commit message.
+
+### Added (0.2.35)
+- **`OFFSET_DATA_DIR` for Docker:** keep the database, evidence, backups and
+  logs in a folder you choose instead of Docker's own volumes. Updates follow
+  it, on Windows and Linux.
+
 ### Security
 Fixes from the security audit of 24 October 2026. Nothing critical or high
 was found.

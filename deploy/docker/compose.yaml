@@ -43,11 +43,15 @@ services:
       # HTTP_PORT changes only the host side. The container always listens on
       # 8080, which is what the health check and the proxy behind it expect.
       - "127.0.0.1:${HTTP_PORT:-8080}:8080"
+    # Docker's own named volumes, unless OFFSET_DATA_DIR in .env names a folder
+    # on this machine: then data, evidence, backups and logs are folders in it,
+    # where they can be seen and copied. The same rule is written on every
+    # mount, here, on the worker and on the updater, so they always agree.
     volumes:
-      - data:/app/data
-      - evidence:/app/evidence
-      - backups:/app/backups
-      - logs:/app/logs
+      - ${OFFSET_DATA_DIR:+${OFFSET_DATA_DIR}/}data:/app/data
+      - ${OFFSET_DATA_DIR:+${OFFSET_DATA_DIR}/}evidence:/app/evidence
+      - ${OFFSET_DATA_DIR:+${OFFSET_DATA_DIR}/}backups:/app/backups
+      - ${OFFSET_DATA_DIR:+${OFFSET_DATA_DIR}/}logs:/app/logs
       # Its half of the handoff to the updater: it may write a request, and
       # only read what the updater reports back.
       - update-requests:/app/updates/request
@@ -83,10 +87,10 @@ services:
     volumes:
       # The same four volumes, and it matters: the worker writes the backups
       # and reads the same database file the API is writing.
-      - data:/app/data
-      - evidence:/app/evidence
-      - backups:/app/backups
-      - logs:/app/logs
+      - ${OFFSET_DATA_DIR:+${OFFSET_DATA_DIR}/}data:/app/data
+      - ${OFFSET_DATA_DIR:+${OFFSET_DATA_DIR}/}evidence:/app/evidence
+      - ${OFFSET_DATA_DIR:+${OFFSET_DATA_DIR}/}backups:/app/backups
+      - ${OFFSET_DATA_DIR:+${OFFSET_DATA_DIR}/}logs:/app/logs
     depends_on:
       app:
         # The API owns the schema. Starting the worker first only means it
@@ -133,8 +137,8 @@ services:
       - update-requests:/updates/request:ro
       - update-status:/updates/status
       # For putting the database back if an update has to be rolled back.
-      - data:/app/data
-      - backups:/app/backups
+      - ${OFFSET_DATA_DIR:+${OFFSET_DATA_DIR}/}data:/app/data
+      - ${OFFSET_DATA_DIR:+${OFFSET_DATA_DIR}/}backups:/app/backups
     depends_on:
       app:
         condition: service_healthy

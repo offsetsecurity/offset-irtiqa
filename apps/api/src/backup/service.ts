@@ -214,6 +214,61 @@ const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "db",
  * restoring, not only when a file is uploaded, because the folder can change
  * in between.
  */
+/**
+ * Puts back documents the database refers to but the evidence folder lacks,
+ * from the newest backup that holds each one.
+ *
+ * Until 0.2.35 the Docker image never set EVIDENCE_DIR, so uploads went into
+ * the container rather than the evidence volume, and every update, which
+ * recreates the container, lost them. Nightly and manual backups did copy
+ * them, and that is where they come back from. Run at start-up; harmless
+ * when nothing is missing, which is every other time.
+ */
+export async function recoverMissingFiles(): Promise<{ missing: number; recovered: number }> {
+  const referenced = db
+    .prepare("select distinct file_key as key from evidence where file_key is not null union select file_key from attachments")
+    .all() as { key: string }[];
+  const wanted = new Set<string>();
+  for (const { key } of referenced) {
+    if (!isValidKey(key)) continue;
+    const info = await stat(pathFor(key)).catch(() => null);
+    if (!info?.isFile()) wanted.add(key);
+  }
+  const missing = wanted.size;
+  if (missing === 0) return { missing, recovered: 0 };
+
+  // Newest first: the names carry the time they were taken.
+  const dated = async (name: string) => ({ name, at: (await stat(join(backupDir(), name)).catch(() => null))?.mtimeMs ?? 0 });
+  const names = (await readdir(backupDir()).catch(() => [] as string[])).filter((n) => NAME.test(n));
+  const newestFirst = (await Promise.all(names.map(dated))).sort((a, b) => b.at - a.at);
+
+  let recovered = 0;
+  for (const { name } of newestFirst) {
+    if (wanted.size === 0) break;
+    let file: SqliteDatabase | undefined;
+    try {
+      file = new Database(join(backupDir(), name), { readonly: true, fileMustExist: true });
+      if (!file.prepare("select 1 from sqlite_master where type = 'table' and name = ?").get(FILES_TABLE)) continue;
+      const read = file.prepare(`select sha256, data from ${FILES_TABLE} where key = ?`);
+      for (const key of [...wanted]) {
+        const row = read.get(key) as { sha256: string; data: Buffer } | undefined;
+        if (!row || createHash("sha256").update(row.data).digest("hex") !== row.sha256) continue;
+        const path = pathFor(key);
+        await mkdir(dirname(path), { recursive: true });
+        await writeFile(`${path}.restoring`, row.data);
+        await rename(`${path}.restoring`, path);
+        wanted.delete(key);
+        recovered++;
+      }
+    } catch {
+      // An unreadable backup is skipped, not fatal: the next one may have it.
+    } finally {
+      file?.close();
+    }
+  }
+  return { missing, recovered };
+}
+
 export async function inspectBackup(path: string): Promise<BackupMeta | null> {
   let file: SqliteDatabase | undefined;
   try {
