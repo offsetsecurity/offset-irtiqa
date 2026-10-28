@@ -4,6 +4,7 @@ What is coming next. Dates are the quarter we plan to ship in.
 
 ## Done
 
+- **October 2026:** a Reports tab, and an executive summary for management.
 - **October 2026, 0.2.34:** fixes from our white-box security audit. Non-Latin file
   names download, sign-in no longer hints which usernames exist, components
   updated, smaller Docker images.
@@ -17,10 +18,8 @@ What is coming next. Dates are the quarter we plan to ship in.
   offline, like the rest of the product.
 - **A new look for Get ready.** The step-by-step plan to audit readiness,
   clearer and easier to follow.
-- **A new look for the Reports tab.** Reports grouped by who they are for, with
-  a preview before you download.
-- **A new executive summary.** A short report for management: where the
-  programme stands, what changed, and what needs a decision.
+- **More reports.** New reports in the Reports tab, each grouped by who it is
+  for, with a preview before you download.
 
 ## Reporting a security issue
 
