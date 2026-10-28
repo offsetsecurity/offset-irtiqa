@@ -2,7 +2,8 @@ import { useEffect, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import { html } from "./html.js";
 import { donut, radar, themeGrid, bar } from "./charts.js";
-import { controls, risks, evidence, type Risk, type Pack } from "../persistence/apiClient.js";
+import { controls, risks, evidence, readiness, type Risk, type Pack, type ReadinessDashboard } from "../persistence/apiClient.js";
+import { FlightPath, LensSwitch, Forecast, Team } from "./ReadyDashboard.js";
 import {
   STATUS_ORDER, STATUS_LABEL, STATUS_COLOR, RISK_BAND_COLOR, MATURITY_LEVELS,
   themeColor, pct, plural,
@@ -50,6 +51,12 @@ export function Dashboard({ themes, themeLabel, itemLabel, pack }: {
 }): VNode {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState("");
+  /** The pack's `readiness` feature: the flight path, the auditor's eye, the forecast and the team. */
+  const ready = Boolean(pack.features?.["readiness"]);
+  const [readyData, setReadyData] = useState<ReadinessDashboard | null>(null);
+  useEffect(() => {
+    if (ready) readiness.dashboard().then(setReadyData).catch(() => setReadyData(null));
+  }, [ready]);
 
   useEffect(() => {
     let live = true;
@@ -143,6 +150,13 @@ export function Dashboard({ themes, themeLabel, itemLabel, pack }: {
       }));
 
   return html`<>
+    ${ready && readyData
+      ? html`<div class="sd-top">
+          <${FlightPath} d=${readyData} words=${pack.readiness}
+            label=${pack.features?.["maturity"] ? "at or above target" : "controls in place"} />
+          <${LensSwitch} d=${readyData} words=${pack.readiness} />
+        </div>`
+      : null}
     <div class="grid cards">
       ${scoresMaturity
         ? html`<>
@@ -280,5 +294,15 @@ export function Dashboard({ themes, themeLabel, itemLabel, pack }: {
             </table>`
           : html`<p class="muted">No risks recorded yet.</p>`}
       </div>
-    </div></>`;
+    </div>
+    ${ready && readyData
+      ? html`<>
+          <div class="sd-heading">Where you are heading</div>
+          <div class="grid two sd-two">
+            <${Forecast} d=${readyData} words=${pack.readiness} />
+            <${Team} d=${readyData} />
+          </div>
+          <p class="muted" style="font-size:12.5px;margin:12px 0 0">Every number here is improved on Get ready. <a href="#/getready">Go to Get ready →</a></p>
+        </>`
+      : null}</>`;
 }

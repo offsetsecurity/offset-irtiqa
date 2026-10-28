@@ -494,6 +494,8 @@ export interface Pack {
    * `statementOfApplicability`. One codebase, three products, decided here.
    */
   features?: Record<string, boolean>;
+  /** The words the readiness screens use for this framework: who audits, what they raise. */
+  readiness?: ReadinessWords;
 }
 
 export interface Programme {
@@ -964,6 +966,75 @@ export const controlTests = {
     api.post<{ test: ControlTest }>(`/api/v1/controls/${controlId}/tests`, body).then((r) => r.test),
   remove: (controlId: string, testId: string) =>
     api.delete<void>(`/api/v1/controls/${controlId}/tests/${testId}`),
+};
+
+// ── readiness: what an auditor would find, what to fix first, quick wins ─────
+
+export interface LikelyFinding {
+  id: string;
+  ref: string;
+  title: string;
+  label: "Fail" | "Gap" | "Stale" | "Partial";
+  says: string;
+  fix: string;
+  action: { label: string; route: string };
+  weight: number;
+  controlId?: string;
+}
+
+export interface QuickWin {
+  id: string;
+  title: string;
+  count: number;
+  minutes: number;
+  route: string;
+}
+
+/** The words this framework uses, from the pack's `readiness` block. */
+export interface ReadinessWords {
+  auditor: string;
+  auditorShort: string;
+  finding: string;
+  findings: string;
+  keyDate: string;
+  ledBy: string;
+}
+
+/** The next external audit: the date everything aims at. */
+export interface KeyDate {
+  title: string;
+  date: string;
+  ledBy: string;
+  daysTo: number;
+}
+
+export interface Readiness {
+  ranAt: string;
+  keyDate: KeyDate | null;
+  words: ReadinessWords;
+  findings: LikelyFinding[];
+  fixFirst: LikelyFinding[];
+  quickWins: QuickWin[];
+}
+
+export interface ReadinessDashboard {
+  readyPct: number;
+  keyDate: KeyDate | null;
+  milestones: { kind: string; date: string }[];
+  projectedReady: string | null;
+  trend: { day: string; pct: number }[];
+  lens: { ready: number; questions: number; findings: number; total: number };
+  team: { owner: string; total: number; implemented: number }[];
+  weakest: { theme: string; name: string; pct: number; implemented: number; total: number } | null;
+  weekChange: number;
+}
+
+export const readiness = {
+  get: () => api.get<Readiness>("/api/v1/readiness"),
+  dashboard: () => api.get<ReadinessDashboard>("/api/v1/readiness/dashboard"),
+  /** One owner for a whole theme, or the whole theme out of scope with a reason. */
+  bulk: (body: { theme: string; owner?: string; outOfScope?: string }) =>
+    api.post<{ updated: number }>("/api/v1/controls/bulk", body),
 };
 
 // ── example data ─────────────────────────────────────────────────────────────

@@ -10,8 +10,11 @@ import {
   type JourneyStage,
   type JourneyTask,
   type TaskState,
+  readiness,
+  type Readiness,
 } from "../persistence/apiClient.js";
 import { ThreadSummary } from "./GoldenThread.js";
+import { ReadyStrip, ProgressPanel, InlineAction, INLINE, AuditorToday, FixFirst, QuickWins, BulkActions } from "./Ready.js";
 
 /**
  * The readiness plan: what to do, in what order, and how far along they are.
@@ -163,6 +166,8 @@ function Task({
   onSet,
   featured = false,
   tpl,
+  inline,
+  extra,
 }: {
   task: JourneyTask;
   canEdit: boolean;
@@ -171,6 +176,10 @@ function Task({
   featured?: boolean;
   /** The template that gives this step a start, looked up from the pack's index. */
   tpl?: PackTemplate;
+  /** The step done right here, where the product can do it without another screen. */
+  inline?: VNode | null;
+  /** One more button beside the usual ones. */
+  extra?: VNode | null;
   onSet: (state: TaskState, reason?: string, assign?: JourneyAssignment) => void;
 }): VNode {
   const [excluding, setExcluding] = useState(false);
@@ -199,6 +208,7 @@ function Task({
 
       <p class="jt-do">${task.do}</p>
       <p class="jt-why muted"><b>Why it matters.</b> ${task.why}</p>
+      ${inline ?? null}
 
       ${tpl
         ? html`<div class="jt-template">
@@ -258,6 +268,7 @@ function Task({
               Put it back
             </button>`
           : null}
+        ${extra ?? null}
       </div>
 
       ${assigning
@@ -322,7 +333,158 @@ function Task({
     </div>`;
 }
 
-export function Journey({ canEdit, itemLabel }: { canEdit: boolean; itemLabel: string }): VNode {
+/** Steps put off with "Not now". Per person and per day: tomorrow they come back. */
+const SNOOZE_KEY = "offset.getready.snoozed";
+function readSnoozed(): Set<string> {
+  try {
+    const v = JSON.parse(localStorage.getItem(SNOOZE_KEY) ?? "{}") as { day?: string; ids?: string[] };
+    return new Set(v.day === new Date().toISOString().slice(0, 10) ? v.ids ?? [] : []);
+  } catch {
+    return new Set();
+  }
+}
+function writeSnoozed(ids: Set<string>): void {
+  try {
+    localStorage.setItem(SNOOZE_KEY, JSON.stringify({ day: new Date().toISOString().slice(0, 10), ids: [...ids] }));
+  } catch { /* private window: it lasts until the page closes */ }
+}
+
+/**
+ * Get ready, the readiness way: one move at a time, done in the card where it
+ * can be, with the progress, what an auditor would find today, and the fixes
+ * that clear the most, all on one screen. The charts live on the Dashboard.
+ * The design came from Offset Attest; the pack's `readiness` feature turns it on.
+ */
+function ReadyJourney({ canEdit, itemLabel, themes, allowOut }: {
+  canEdit: boolean;
+  itemLabel: string;
+  themes: Record<string, string>;
+  allowOut: boolean;
+}): VNode {
+  const [plan, setPlan] = useState<Journey | null>(null);
+  const [ready, setReady] = useState<Readiness | null>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [picked, setPicked] = useState<string | null>(null);
+  const [snoozed, setSnoozed] = useState<Set<string>>(readSnoozed);
+  const [said, setSaid] = useState("");
+  const [tpls, setTpls] = useState<Record<string, PackTemplate>>({});
+
+  const refresh = async (): Promise<void> => {
+    const [p, r] = await Promise.all([api.get(), readiness.get().catch(() => null)]);
+    setPlan(p);
+    setReady(r);
+  };
+  useEffect(() => {
+    refresh().catch((err: Error) => setError(err.message));
+    templates.index()
+      .then((d) => setTpls(Object.fromEntries(d.documents.map((t) => [t.file, t]))))
+      .catch(() => { /* no templates, no link */ });
+  }, []);
+
+  if (error && !plan) return html`<div class="card pad error-box">${error}</div>`;
+  if (!plan) return html`<div class="card pad muted">Loading…</div>`;
+
+  const all = plan.stages.flatMap((s) => s.tasks);
+  const open = all.filter((t) => t.state === "outstanding");
+  /** The step the plan suggests; "current" is whatever is on the card, which the arrows can move. */
+  const suggested = open.find((t) => !snoozed.has(t.id)) ?? open[0];
+  const current = all.find((t) => t.id === picked) ?? suggested;
+  const index = current ? all.indexOf(current) + 1 : 0;
+  const away = Boolean(current && suggested && current.id !== suggested.id);
+  const step = (by: number): void => {
+    const next = all[index - 1 + by];
+    if (next) { setPicked(next.id); setSaid(""); }
+  };
+  const stage = plan.stages.find((s) => s.tasks.some((t) => t.id === current?.id));
+
+  const after = async (line: string): Promise<void> => {
+    setSaid(line);
+    setPicked(null);
+    await refresh();
+  };
+  async function set(taskId: string, state: TaskState, reason = "", assign: JourneyAssignment = {}): Promise<void> {
+    setBusy(true);
+    setError("");
+    try {
+      setPlan(await api.set(taskId, state, reason, assign));
+      if (state !== "outstanding") setPicked(null);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const notNow = (): void => {
+    if (!current) return;
+    const next = new Set(snoozed).add(current.id);
+    setSnoozed(next);
+    writeSnoozed(next);
+    setPicked(null);
+    setSaid(`"${current.title}" moved to tomorrow`);
+  };
+
+  return html`<>
+    ${error ? html`<div class="card pad error-box" style="margin-bottom:14px">${error}</div>` : null}
+    <${ReadyStrip} plan=${plan} ready=${ready} />
+    <${ProgressPanel} plan=${plan} current=${current} snoozed=${snoozed}
+      onPick=${(id: string) => { setPicked(id); setSaid(""); }} />
+    ${said ? html`<div class="sr-said" role="status">${said}</div>` : null}
+
+    <div class="sr-cols">
+      <div class="sr-col">
+      ${current
+        ? html`<div class="card pad next-step sr-move">
+            <div class="sr-move-top">
+              <div class="next-eyebrow">${away ? "Looking at" : "Your next move"} · step ${index} of ${all.length}${snoozed.size ? ` · ${snoozed.size} put off` : ""}</div>
+              <div class="sr-nav">
+                <button type="button" disabled=${index <= 1} onClick=${() => step(-1)} aria-label="Previous step">← Previous</button>
+                <button type="button" disabled=${index >= all.length} onClick=${() => step(1)} aria-label="Next step">Next →</button>
+              </div>
+            </div>
+            <div class="sr-move-sub">
+              ${stage ? html`<span class="muted">Stage ${plan.stages.indexOf(stage) + 1} of ${plan.stages.length} · ${stage.name}</span>` : html`<span></span>`}
+              <span class=${`pill ${INLINE[current.id] ? "green" : "slate"}`}>${INLINE[current.id] ?? (current.goto ? "Opens another screen" : "Mark it here")}</span>
+            </div>
+            ${away
+              ? html`<button type="button" class="sr-back" onClick=${() => { setPicked(null); setSaid(""); }}>↩ Back to your next move</button>`
+              : null}
+            <${Task} key=${current.id} task=${current} canEdit=${canEdit} busy=${busy} featured
+              tpl=${current.template ? tpls[current.template] : undefined}
+              inline=${html`<${InlineAction} taskId=${current.id} canEdit=${canEdit} themes=${themes}
+                ledBy=${ready?.words.ledBy ?? "Led by"} onDone=${(line: string) => void after(line)} />`}
+              extra=${canEdit ? html`<button class="btn small ghost" onClick=${notNow}>Not now</button>` : null}
+              onSet=${(state: TaskState, reason?: string, assign?: JourneyAssignment) => void set(current.id, state, reason, assign)} />
+          </div>`
+        : html`<div class="card pad next-step done">
+            <div class="next-eyebrow">Every step is done or ruled out</div>
+            <p style="margin:6px 0 0">What matters now is keeping the proof current, so it still shows everything working on the day of the audit.</p>
+          </div>`}
+        <${FixFirst} ready=${ready} />
+      </div>
+      <div class="sr-col">
+        <${AuditorToday} ready=${ready} canEdit=${canEdit} onRerun=${async () => setReady(await readiness.get())} />
+        <${QuickWins} ready=${ready} />
+        <${ThreadSummary} itemLabel=${itemLabel} />
+      </div>
+    </div>
+    <${BulkActions} themes=${themes} canEdit=${canEdit} allowOut=${allowOut} onDone=${(line: string) => void after(line)} />
+  </>`;
+}
+
+export function Journey({ canEdit, itemLabel, ready = false, themes = {}, allowOut = false }: {
+  canEdit: boolean;
+  itemLabel: string;
+  /** The pack's `readiness` feature: the one-move-at-a-time design with what an auditor would find. */
+  ready?: boolean;
+  themes?: Record<string, string>;
+  allowOut?: boolean;
+}): VNode {
+  if (ready) return html`<${ReadyJourney} canEdit=${canEdit} itemLabel=${itemLabel} themes=${themes} allowOut=${allowOut} />`;
+  return html`<${ClassicJourney} canEdit=${canEdit} itemLabel=${itemLabel} />`;
+}
+
+function ClassicJourney({ canEdit, itemLabel }: { canEdit: boolean; itemLabel: string }): VNode {
   const [plan, setPlan] = useState<Journey | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);

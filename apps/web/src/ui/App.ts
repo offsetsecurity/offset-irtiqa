@@ -402,7 +402,12 @@ export function App(): VNode {
   const TITLE: Record<Route, { h1: string; sub: string }> = {
     getready: { h1: "Get ready", sub: "What to do, in what order, and how far you have got" },
     thread: { h1: "Golden thread", sub: `Every risk, the ${plural(itemLabel).toLowerCase()} that treat it, and the evidence behind them` },
-    dashboard: { h1: "Dashboard", sub: `${meta.pack.framework} readiness at a glance` },
+    dashboard: {
+      h1: "Dashboard",
+      sub: features["readiness"] && meta.pack.readiness
+        ? `Your ${meta.pack.readiness.keyDate} date, what the ${meta.pack.readiness.auditorShort} would find, and where you stand`
+        : `${meta.pack.framework} readiness at a glance`,
+    },
     isms: { h1: "ISMS", sub: "Context, scope, risk method, objectives and certificate (clauses 4 to 6)" },
     profile: { h1: "Profile & Tiers", sub: "Where you are now, and where you intend to be" },
     soa: { h1: "Statement of Applicability", sub: "Which controls apply, and why the rest do not" },
@@ -552,7 +557,8 @@ export function App(): VNode {
                 This screen is not part of ${meta.pack.product}.
               </div>`
             : route === "getready"
-            ? html`<${Journey} canEdit=${canEdit} itemLabel=${itemLabel} />`
+            ? html`<${Journey} canEdit=${canEdit} itemLabel=${itemLabel} ready=${Boolean(features["readiness"])}
+                 themes=${meta.themes} allowOut=${Boolean(features["statementOfApplicability"])} />`
             // Never reached from the address any more ("#/thread" opens Risks on its
             // Golden thread tab), but kept so a route of that name still renders.
             : route === "thread"
