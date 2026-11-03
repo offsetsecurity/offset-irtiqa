@@ -20,6 +20,8 @@ for administrators.
 
 ![Offset Irtiqa control register](docs/screenshots/controls.png)
 
+![Offset Irtiqa golden thread: each risk joined to its controls and their evidence](docs/screenshots/golden-thread.png)
+
 <sub>Screenshots from the current release, filled with the built-in example data. The people and the company are made up.</sub>
 
 ## Download it
