@@ -16,6 +16,12 @@ for administrators.
 > Offset Irtiqa is not affiliated with, endorsed by, or certified by
 > the Saudi Central Bank (SAMA).
 
+![Offset Irtiqa dashboard](docs/screenshots/dashboard.png)
+
+![Offset Irtiqa control register](docs/screenshots/controls.png)
+
+<sub>Screenshots from the current release, filled with the built-in example data. The people and the company are made up.</sub>
+
 ## Download it
 
 **[Releases](../../releases)** — take the newest one.
