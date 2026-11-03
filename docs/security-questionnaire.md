@@ -102,7 +102,7 @@ Applies to Offset Irtiqa.
 | Is there automated testing? | Yes. 295 tests run on every change |
 | How are third-party libraries managed? | They are pinned to the exact versions the tests ran against, and bundled, so nothing is fetched at install time |
 | Is the code scanned for vulnerabilities? | Yes. Every change is scanned for known vulnerabilities, misconfiguration and leaked secrets (Trivy and gitleaks). A high or critical finding fails the build |
-| Is the product open source? | No. It is closed source and free to use under its licence |
+| Is the product open source? | Yes. It is free and open source, under the Apache License 2.0 |
 
 ## Running on the server
 

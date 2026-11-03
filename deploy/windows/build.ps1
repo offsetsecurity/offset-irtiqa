@@ -384,9 +384,8 @@ help and guides are inside the product too, under Help and Documentation.
 
 Bundled Node $nodeVersion. No other software is required.
 
-$([char]0x00a9) 2026 Offset Security. Free to use under the licence in LICENSE.txt:
-install it anywhere, for any purpose, for as many people as you like. You may
-not modify it, re-brand it, sell it, or run it as a service for others.
+$([char]0x00a9) 2026 Offset Security. Free and open source, under the Apache License 2.0
+in LICENSE.txt.
 Questions: info@offsetsecurity.net
 "@ | Set-Content (Join-Path $stage "README.txt") -Encoding utf8
 

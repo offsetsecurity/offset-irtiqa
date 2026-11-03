@@ -13,8 +13,8 @@ CSF 2.0, Anchor on SP 800-53 — each with the screens its framework needs, ten
 in total, on a shared API with roles, an audit trail, six PDF reports, a
 background worker and 60 tests.
 
-All of that is the **Community Edition**, which is free to use and closed
-source — and, as of 2026-09-10, the only edition. What is left is the rest of
+All of that is the **Community Edition**, which is free and open
+source (Apache License 2.0, since 2026-11-03) — and, as of 2026-09-10, the only edition. What is left is the rest of
 packaging (installer, edition naming, running as a service) and email.
 
 The ordering principle throughout: **prove the risky thing early, and keep
@@ -30,17 +30,15 @@ decision after it had been repeated nine times.
 2026-09-10. A paid Enterprise edition was considered and shelved — revisit
 around September 2027, not before.
 
-**Free to use, closed source.** Anyone may install it, on as many machines as
-they like, for commercial work, with as many users as they like, at no charge.
-They may not modify it, reverse engineer it, re-brand it, sell it, or run it
-as a service for other people. The source is not published and the repository
-stays private. `LICENSE` holds the agreement, v1.0, and the installer shows it
-before anything is copied.
+**Free and open source.** Under the Apache License 2.0 since 2026-11-03;
+before that it was free to use and closed source. Anyone may use, change and
+share it, for commercial work too, at no charge. `LICENSE` holds the licence,
+and the installer shows it before anything is copied.
 
-One point in that licence is easy to get wrong, so it is written down twice:
-customers **may** put their own logo on reports they export — the product
-offers that — and **may not** remove Offset Security's branding from the
-product itself. Adding your logo to your document is not white-labelling.
+The licence gives no rights to the Offset Security name or logos (section 6
+of the licence), so a changed copy may not be passed off as an Offset product.
+Customers may put their own logo on reports they export; the product offers
+that.
 
 The edition split has no code behind it and does not need any. The pack's
 `features` flags already decide what each of the three products shows, and
@@ -429,6 +427,8 @@ No item counts as finished until all of it is true:
 - **2026-09-10 — no Enterprise edition.** Revisit around September 2027.
 - **2026-09-10 — free to use, closed source.** `LICENSE` v1.0 written; the
   repository stays private.
+- **2026-11-03 — open source, under the Apache License 2.0.** It replaces the
+  closed-source `LICENSE`.
 - **2026-09-10 — SSO dropped.** No paid tier to sell it with. This also
   removes the need for a JDK and Keycloak on the build machine.
 - Front-end approach: Preact and htm

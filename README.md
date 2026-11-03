@@ -104,7 +104,7 @@ what to do when a release goes wrong.
 
 ## Licence
 
-Free to use, closed source. See [LICENSE](LICENSE).
+Free and open source, under the [Apache License 2.0](LICENSE).
 
 ---
 

@@ -121,11 +121,11 @@ WORKDIR /app/apps/api
 EXPOSE 8080
 
 LABEL org.opencontainers.image.title="Offset GRC (${PRODUCT})" \
-      org.opencontainers.image.description="Free to use, closed source." \
+      org.opencontainers.image.description="Free and open source (Apache-2.0)." \
       org.opencontainers.image.vendor="Offset Security" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.source="https://github.com/offsetsecurity/offset-irtiqa" \
-      org.opencontainers.image.licenses="LicenseRef-Offset-Community-Edition"
+      org.opencontainers.image.licenses="Apache-2.0"
 
 # Only meaningful for the API. The worker listens on nothing, so compose
 # turns this off for it rather than letting it report itself permanently sick.
