@@ -47,7 +47,7 @@ security overview and the privacy sheet.
 
 ## Licence
 
-Free to use, under the Offset Security licence. Closed source.
+Free and open source, under the Apache License 2.0.
 
 **Contact:** info@offsetsecurity.net
 

@@ -16,6 +16,14 @@ for administrators.
 > Offset Irtiqa is not affiliated with, endorsed by, or certified by
 > the Saudi Central Bank (SAMA).
 
+![Offset Irtiqa dashboard](docs/screenshots/dashboard.png)
+
+![Offset Irtiqa control register](docs/screenshots/controls.png)
+
+![Offset Irtiqa golden thread: each risk joined to its controls and their evidence](docs/screenshots/golden-thread.png)
+
+<sub>Screenshots from the current release, filled with the built-in example data. The people and the company are made up.</sub>
+
 ## Download it
 
 **[Releases](../../releases)** — take the newest one.
@@ -96,7 +104,7 @@ what to do when a release goes wrong.
 
 ## Licence
 
-Free to use, closed source. See [LICENSE](LICENSE).
+Free and open source, under the [Apache License 2.0](LICENSE).
 
 ---
 

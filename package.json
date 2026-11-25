@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Offset Security GRC platform \u2014 Assure (ISO 27001), Align (NIST CSF 2.0), Anchor (NIST SP 800-53)",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=24.0.0 <25"
   },

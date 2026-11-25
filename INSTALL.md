@@ -1,6 +1,6 @@
 # Installing Offset
 
-Free to use. See [LICENSE](LICENSE).
+Free and open source, under the Apache License 2.0. See [LICENSE](LICENSE).
 
 This guide is for whoever installs and looks after it. You do not need to be a
 developer, but you do need to be an administrator on the machine.

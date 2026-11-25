@@ -18,6 +18,8 @@ Every release is numbered x.y.z, for example 1.4.2:
 ## [Unreleased]
 
 ### Changed
+- **Offset Irtiqa is now open source,** under the Apache License 2.0. It is still
+  free. You may use, change and share it. See `LICENSE`.
 - **The global UI**, the same look as every Offset product: the menu, top bar,
   account menu, Ctrl K to jump to any screen, the windows and the sign-in page.
   The first screen is now called **Plan**, with a mock audit at the top that
