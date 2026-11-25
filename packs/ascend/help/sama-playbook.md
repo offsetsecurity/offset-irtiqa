@@ -4,7 +4,7 @@ The framework asks every member organisation to reach **maturity level 3** on
 every control, and to be able to show it. Banks must reach **level 4** in four
 subdomains. This is the path, and where each piece lives here.
 
-Everything below is also in **Get ready**, which tracks how far you have got.
+Everything below is also in **Plan**, which tracks how far you have got.
 
 ## The maturity scale
 

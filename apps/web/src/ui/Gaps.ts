@@ -131,12 +131,12 @@ export function Gaps({ themes, itemLabel, canEdit, pack }: {
         <div class="val">${pct(counts.implemented - counts.unproven, counts.applicable)}%</div>
         <div class="delta">${counts.implemented - counts.unproven} of ${counts.applicable} that apply</div>
       </div>
-      <div class="card pad stat" style="border-left:3px solid #dc2626">
+      <div class="card pad stat" style="border-left:3px solid #D2333D">
         <div class="lbl">Not started</div>
         <div class="val">${counts.notStarted}</div>
         <div class="delta">nothing recorded yet</div>
       </div>
-      <div class="card pad stat" style="border-left:3px solid #d97706">
+      <div class="card pad stat" style="border-left:3px solid #C47A06">
         <div class="lbl">In progress</div>
         <div class="val">${counts.inProgress}</div>
         <div class="delta">started, not finished</div>

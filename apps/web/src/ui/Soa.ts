@@ -147,7 +147,7 @@ export function Soa({ themes, itemLabel, canEdit, pack }: {
             ? html`<span class="muted" style="font-size:12px">ISMS scope and risk method are written on the${" "}<a href="#/isms">ISMS</a>${" "}screen, and print at the top of this statement.</span>`
             : null}</div>
         <div class="grid cards" style="grid-template-columns:1fr 1fr;gap:10px">
-          <div class="card pad stat" style="border-left:3px solid #1e3a8a;box-shadow:none">
+          <div class="card pad stat" style="border-left:3px solid #183A8F;box-shadow:none">
             <div class="lbl">Applicable</div>
             <div class="val">${included}</div>
             <div class="delta">of ${rows.length} ${itemLabel.toLowerCase()}s</div>
@@ -206,7 +206,7 @@ export function Soa({ themes, itemLabel, canEdit, pack }: {
           <tr>
             <th style="width:90px">Ref</th>
             <th>${itemLabel}</th>
-            <th style="width:110px">Applies</th>
+            <th style="width:136px">Applies</th>
             <th style="width:140px">Status</th>
             <th style="width:96px">Evidence</th>
             <th>Justification</th>

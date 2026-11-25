@@ -19,9 +19,9 @@ export const MATURITY_LEVELS: { level: number; name: string; note: string }[] = 
 
 /** Red below target, amber at it, green above. The target is usually 3. */
 export function maturityColour(level: number | null, target: number): string {
-  if (level === null) return "#94a3b8";
-  if (level < target) return "#dc2626";
-  if (level === target) return "#16a34a";
+  if (level === null) return "#97A0B1";
+  if (level < target) return "#D2333D";
+  if (level === target) return "#14915A";
   return "#0f766e";
 }
 
@@ -48,15 +48,15 @@ export const STATUS_PILL: Record<ControlStatus, string> = {
 };
 
 export const STATUS_COLOR: Record<ControlStatus, string> = {
-  implemented: "#16a34a",
-  in_progress: "#d97706",
-  not_started: "#94a3b8",
+  implemented: "#14915A",
+  in_progress: "#C47A06",
+  not_started: "#97A0B1",
   not_applicable: "#3b82f6",
 };
 
 /** CSF function accents. Falls back to the brand navy for other frameworks. */
 export const THEME_COLOR: Record<string, string> = {
-  GV: "#4338ca",
+  GV: "#5546C8",
   ID: "#0891b2",
   PR: "#2457D6",
   DE: "#7c3aed",
@@ -64,11 +64,12 @@ export const THEME_COLOR: Record<string, string> = {
   RC: "#0f766e",
 };
 
-export const themeColor = (key: string): string => THEME_COLOR[key] ?? "#334155";
+export const themeColor = (key: string): string => THEME_COLOR[key] ?? "#2A3446";
 
 /** "Subcategory" -> "Subcategories", "Control" -> "Controls". */
 export const plural = (word: string): string =>
-  /[^aeiou]y$/i.test(word) ? `${word.slice(0, -1)}ies` : `${word}s`;
+  /criterion$/i.test(word) ? `${word.slice(0, -2)}a`
+    : /[^aeiou]y$/i.test(word) ? `${word.slice(0, -1)}ies` : `${word}s`;
 
 export const pct = (part: number, whole: number): number =>
   whole > 0 ? Math.round((part / whole) * 100) : 0;
@@ -86,9 +87,9 @@ export function since(iso: string | null | undefined): string {
 }
 
 export const RISK_BAND_COLOR: Record<string, string> = {
-  critical: "#dc2626",
-  elevated: "#d97706",
-  acceptable: "#16a34a",
+  critical: "#D2333D",
+  elevated: "#C47A06",
+  acceptable: "#14915A",
 };
 
 /**

@@ -32,6 +32,9 @@ test("downloading a report says who took it, and the board paper is a PDF", asyn
 test("Download all gives one zip with every report in it", async ({ page }) => {
   test.setTimeout(120_000);
   await open(page, "reports");
+  // Count only once the list is on the screen: counting straight away read 0
+  // on a slow start, and the test failed one run in three.
+  await expect(page.locator(".rb-feature, .rb-row").first()).toBeVisible();
   const count = await page.locator(".rb-feature, .rb-row").count();
   const button = page.getByRole("button", { name: /Download all/ });
   const [download] = await Promise.all([page.waitForEvent("download", { timeout: 90_000 }), button.click()]);

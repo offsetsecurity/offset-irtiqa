@@ -38,7 +38,7 @@ export function Brand({ onDark = false }: { onDark?: boolean } = {}): VNode {
         <span class="ptile"><${ProductMark} /></span>
         <div class="names">
           <div class="pname">${PRODUCT_NAME}</div>
-          <div class="fw">${FRAMEWORK}</div>
+          <div class="fw">${FRAMEWORK} readiness</div>
           ${EDITION ? html`<div class="edition">${EDITION}</div>` : null}
         </div>
       </div>`;

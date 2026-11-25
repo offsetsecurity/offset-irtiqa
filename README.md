@@ -7,7 +7,7 @@ This repository is the whole product: the application, the framework content,
 and everything needed to build the installers. Nothing is fetched from
 anywhere else.
 
-Maturity scoring from 0 to 5 against SAMA's own scale, with 3 as the floor a member organisation is expected to reach, and a Get ready plan built around it.
+Maturity scoring from 0 to 5 against SAMA's own scale, with 3 as the floor a member organisation is expected to reach, and a Plan built around it.
 
 Every Offset product has HTTPS, backups and restore from the screen, an audit
 trail, reminder emails, signed one-click updates, and a Forgot password flow
@@ -79,7 +79,7 @@ No database to install. `pnpm test` runs the suite; the end-to-end half needs
 apps/api/       the API, worker and updater
 apps/web/       the screens
 packs/ascend/   the framework: 183 controls, their explanations,
-                Get ready, the sample library and the help pages
+                Plan, the sample library and the help pages
 deploy/         Dockerfile, compose, the Windows and Linux builds, releasing
 docs/           what it is, how it works, how to install it
 ```

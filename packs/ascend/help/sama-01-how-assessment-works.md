@@ -139,6 +139,6 @@ audit on compliance against the required maturity level.
 
 - **Controls** holds all 136 controls, numbered as SAMA numbers them, each with
   its maturity level, target, owner, evidence and guidance.
-- **Get ready** walks the same ground one step at a time.
+- **Plan** walks the same ground one step at a time.
 - The **Maturity assessment** report is the picture SAMA's self-assessment asks
   for.

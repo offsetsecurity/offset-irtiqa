@@ -14,7 +14,9 @@ test("a new install asks for the first administrator, and signs them in", async 
   await page.locator('input[name="password"]').fill(ADMIN.password);
   await page.getByRole("button", { name: "Create administrator" }).click();
   await expect(page.locator(".sidebar")).toBeVisible();
-  await expect(page.locator(".sidebar-user")).toContainText(ADMIN.name);
+  // Name and role show once, at the top right; the menu does not repeat them.
+  await expect(page.locator(".acct-btn")).toContainText(ADMIN.name);
+  await expect(page.locator(".sidebar")).not.toContainText(ADMIN.name);
 });
 
 test("a wrong password is refused with one plain message, and written to signin.log", async ({ page }) => {
@@ -34,7 +36,9 @@ test("the right password signs in, and Sign out signs out", async ({ page }) => 
   await page.locator('input[name="password"]').fill(ADMIN.password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.locator(".topbar")).toBeVisible();
-  await page.getByRole("button", { name: "Sign out" }).click();
+  // Sign out lives in the account menu, behind the name at the top right.
+  await page.locator(".acct-btn").click();
+  await page.getByRole("menuitem", { name: "Sign out" }).click();
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 });
 

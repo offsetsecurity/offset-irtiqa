@@ -2,7 +2,7 @@
 
 | Screen | What it is for |
 |---|---|
-| **Get ready** | The plan: what to do next, and how far you have got |
+| **Plan** | The plan: what to do next, and how far you have got |
 | **Golden thread** | Every risk, what treats it, and the proof, joined up. Broken links are what auditors find |
 | **Dashboard** | Where you stand today: maturity by domain, and the distance to your targets |
 | **Controls** | All 136 controls in SAMA's 32 subdomains: maturity level, target, owner, evidence, notes |

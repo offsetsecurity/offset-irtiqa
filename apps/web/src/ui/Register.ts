@@ -19,15 +19,23 @@ import { since, localDay } from "./format.js";
  */
 
 export type FieldKind =
-  | "text" | "textarea" | "date" | "select" | "links" | "link" | "history"
-  | "acknowledgements";
+  | "text" | "textarea" | "date" | "datetime" | "select" | "links" | "link" | "history"
+  | "acknowledgements" | "custom" | "info";
 
 /**
  * Field kinds that display server-derived data and are never sent back. The
  * API rejects unknown keys, so anything shown but not writable has to be
  * stripped before the request goes out.
  */
-const READ_ONLY: ReadonlySet<FieldKind> = new Set<FieldKind>(["history", "acknowledgements"]);
+const READ_ONLY: ReadonlySet<FieldKind> = new Set<FieldKind>(["history", "acknowledgements", "info"]);
+
+/**
+ * Kinds drawn by the register's own spec rather than by this screen: a
+ * questionnaire, a risk grid, a line worked out from other fields. They hold
+ * buttons and several inputs, so they sit in a plain block rather than a
+ * label, and spreadsheets leave them out.
+ */
+const DRAWN: ReadonlySet<FieldKind> = new Set<FieldKind>(["custom", "info"]);
 
 export interface FieldSpec {
   key: string;
@@ -39,6 +47,18 @@ export interface FieldSpec {
   wide?: boolean;
   hint?: string;
   required?: boolean;
+  /** Shown only when this says so, such as the Article 9 condition when special data is Yes. */
+  showIf?: (draft: Record<string, unknown>) => boolean;
+  /**
+   * For "custom" and "info": draws the field. `set` merges into the draft, so
+   * one questionnaire can fill in more than one field.
+   */
+  render?: (
+    value: unknown,
+    set: (patch: Record<string, unknown>) => void,
+    draft: Record<string, unknown>,
+    canEdit: boolean,
+  ) => VNode;
 }
 
 export interface ColumnSpec<T> {
@@ -76,6 +96,14 @@ export interface RegisterSpec<T extends RegisterRow> {
    * show how many each has. The server keeps the list of registers that may.
    */
   attachTo?: string;
+  /** Set when a column of the spec's own handles files, so the paper-clip column is left out. */
+  ownFiles?: boolean;
+  /**
+   * Draws the rows in place of the table, for a register whose records read
+   * better as cards (SOC reports). Search, filters, CSV and the edit form are
+   * the register's own and stay the same.
+   */
+  renderRows?: (rows: T[], open: (row: T) => void, reload: () => Promise<void>, canEdit: boolean) => VNode;
 }
 
 /**
@@ -286,6 +314,37 @@ function Attachments({ register, recordId, canEdit, onChange }: {
   </>`;
 }
 
+/** A register's name mid-sentence: "Add supplier", but "Add SOC report". */
+const midSentence = (name: string): string =>
+  name.replace(/\b([A-Z][a-z]+)\b/g, (w) => w.toLowerCase());
+
+/** The colour a status word deserves: done is green, late or open is amber, failed or high is red. */
+function toneOf(word: string): string {
+  const w = word.toLowerCase();
+  if (/(overdue|fail|critical|high|breach|rejected|expired|missed|lapsed|not met)/.test(w)) return "bad";
+  if (/(done|closed|complete|approved|active|met|passed|resolved|fixed|accepted|treated|published|sent|held|received|valid)/.test(w)) return "good";
+  if (/(open|due|review|draft|pending|planned|in progress|progress|medium|waiting|requested)/.test(w)) return "warn";
+  return "none";
+}
+
+/** The status-like filter, shown as chips with counts. */
+function chipFilterOf<T extends RegisterRow>(spec: RegisterSpec<T>): { key: keyof T & string; label: string; options: readonly string[] } | undefined {
+  return (spec.filters ?? []).find((f) => /status|result|state/i.test(f.key)) ?? spec.filters?.[0];
+}
+/** The date a row is due by, where the register has one: a due, close-by, review or "due again" date. */
+function dueFieldOf<T extends RegisterRow>(spec: RegisterSpec<T>): FieldSpec | undefined {
+  return spec.fields.find((f) => f.kind === "date" && /due|close|review|next|expir|again|deadline/i.test(`${f.key} ${f.label}`));
+}
+/** Past its date and not finished: what a compliance lead looks for first. */
+function overdue<T extends RegisterRow>(spec: RegisterSpec<T>, row: T, today: string): boolean {
+  const due = dueFieldOf(spec);
+  // Fields are named as the form names them; the row is read through the spec's own mapping.
+  const when = due ? String(spec.toInput(row)[due.key] ?? "").slice(0, 10) : "";
+  if (!when || when >= today) return false;
+  const st = chipFilterOf(spec);
+  return !(st && toneOf(String(row[st.key] ?? "")) === "good");
+}
+
 export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
   spec: RegisterSpec<T>;
   canEdit: boolean;
@@ -310,6 +369,8 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
   const [importError, setImportError] = useState("");
   const importInput = useRef<HTMLInputElement | null>(null);
   const [picked, setPicked] = useState<Record<string, string>>({});
+  const [lateOnly, setLateOnly] = useState(false);
+  const today = localDay();
 
   const [editing, setEditing] = useState<T | null>(null);
   const [draft, setDraft] = useState<Record<string, unknown> | null>(null);
@@ -331,12 +392,13 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return rows.filter((row) => {
+      if (lateOnly && !overdue(spec, row, today)) return false;
       for (const [key, value] of Object.entries(picked)) {
         if (value && String(row[key] ?? "") !== value) return false;
       }
       return !needle || spec.searchText(row).toLowerCase().includes(needle);
     });
-  }, [rows, q, picked, spec]);
+  }, [rows, q, picked, spec, lateOnly]);
 
   function open(row: T | null): void {
     setEditing(row);
@@ -408,6 +470,16 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
           const v = (e.target as HTMLInputElement).value;
           set({ [f.key]: v === "" ? null : v });
         }} />`;
+      case "datetime":
+        // Local wall-clock time, "2026-10-16T09:30", which is what the box gives.
+        return html`<input type="datetime-local" value=${str.slice(0, 16)} required=${f.required ?? false}
+          onInput=${(e: Event) => {
+            const v = (e.target as HTMLInputElement).value;
+            set({ [f.key]: v === "" ? null : v });
+          }} />`;
+      case "custom":
+      case "info":
+        return f.render ? f.render(value, set, draft ?? {}, canEdit) : html`<span class="muted">—</span>`;
       case "select": {
         // A value the list does not hold is offered anyway. Without this, a
         // row whose type came from the sample library or a CSV import loses
@@ -492,7 +564,7 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
 
   /** The rows on screen, with the columns of the add form: what a person edits. */
   function exportCsv(): void {
-    const fields = spec.fields.filter((f) => !READ_ONLY.has(f.kind));
+    const fields = spec.fields.filter((f) => !READ_ONLY.has(f.kind) && !DRAWN.has(f.kind));
     const headers = fields.map((f) => f.label);
     const body = shown.map((row) => {
       const input = spec.toInput(row);
@@ -534,7 +606,7 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
     setImportError("");
 
     const fields = spec.fields.filter(
-      (f) => !READ_ONLY.has(f.kind) && f.kind !== "links" && f.kind !== "link",
+      (f) => !READ_ONLY.has(f.kind) && !DRAWN.has(f.kind) && f.kind !== "links" && f.kind !== "link",
     );
     const byHeader = new Map(importing.headers.map((h, i) => [headerKey(h), i]));
     const wanted = fields
@@ -593,17 +665,75 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
     );
     await reload();
   }
-  if (loading) return html`<div class="card pad muted">Loading…</div>`;
+  if (loading) return html`<div class="card pad reg-loading" aria-busy="true"><span class="sr-only">Loading…</span>
+      <div class="skeleton" style="height:34px;width:42%"></div>
+      ${[0, 1, 2, 3].map((i) => html`<div class="skeleton" key=${i} style=${`height:18px;margin-top:18px;width:${88 - i * 9}%`}></div>`)}
+    </div>`;
   if (error) return html`<div class="card pad err">${error}</div>`;
+
+  /**
+   * The status-like filter becomes a row of chips with counts: one click to see
+   * what is open, and the numbers say at a glance where the register stands.
+   * Any other filter stays a drop-down beside the search.
+   */
+  const chipFilter = chipFilterOf(spec);
+  const late = rows.filter((r) => overdue(spec, r, today)).length;
+  const otherFilters = (spec.filters ?? []).filter((f) => f !== chipFilter);
+  const countOf = (o: string): number => (chipFilter ? rows.filter((r) => String(r[chipFilter.key] ?? "") === o).length : 0);
+  const chipOn = chipFilter ? picked[chipFilter.key] ?? "" : "";
+  const filtered = Boolean(q.trim() || lateOnly || Object.values(picked).some(Boolean));
 
   return html`<>
     ${spec.summary ? spec.summary(shown) : null}
 
-    <div class="card pad">
-      <div class="toolbar">
-        <input type="search" placeholder=${`Search ${spec.plural.toLowerCase()}…`} value=${q}
+    <div class="card reg">
+      <div class="reg-top">
+        ${chipFilter && rows.length
+          ? html`<div class="reg-chips" role="group" aria-label=${chipFilter.label}>
+              <button type="button" class=${chipOn ? "" : "on"} aria-pressed=${!chipOn}
+                      onClick=${() => setPicked((p) => ({ ...p, [chipFilter.key]: "" }))}>All<b>${rows.length}</b></button>
+              ${chipFilter.options.filter((o) => countOf(o) > 0 || chipOn === o).map((o) => html`
+                <button type="button" key=${o} class=${chipOn === o ? "on" : ""} aria-pressed=${chipOn === o}
+                        data-tone=${toneOf(o)}
+                        onClick=${() => setPicked((p) => ({ ...p, [chipFilter.key]: chipOn === o ? "" : o }))}>
+                  <i aria-hidden="true"></i>${o}<b>${countOf(o)}</b>
+                </button>`)}
+              ${late
+                ? html`<button type="button" class=${`late${lateOnly ? " on" : ""}`} aria-pressed=${lateOnly}
+                          title="Past its date and not finished" onClick=${() => setLateOnly((v) => !v)}>
+                    <i aria-hidden="true"></i>Overdue<b>${late}</b>
+                  </button>`
+                : null}
+            </div>`
+          : html`<div class="reg-title">${rows.length ? `${rows.length} ${midSentence(rows.length === 1 ? spec.singular : spec.plural)}` : ""}</div>`}
+        <div class="reg-actions">
+          ${csv
+            ? html`<button type="button" class="btn ghost" onClick=${exportCsv}
+                     title="The rows shown, as a spreadsheet">Export CSV</button>`
+            : null}
+          ${csv && canEdit
+            ? html`<>
+                <button type="button" class="btn ghost" onClick=${() => importInput.current?.click()}>
+                  Import CSV
+                </button>
+                <input ref=${importInput} type="file" accept=".csv,text/csv" style="display:none"
+                  onChange=${(e: Event) => {
+                    const input = e.target as HTMLInputElement;
+                    const file = input.files?.[0];
+                    input.value = "";
+                    if (file) void readFile(file);
+                  }} />
+              </>`
+            : null}
+          ${canEdit
+            ? html`<button class="btn primary" onClick=${() => open(null)}>Add ${midSentence(spec.singular)}</button>`
+            : null}
+        </div>
+      </div>
+      <div class="toolbar reg-filters">
+        <input type="search" placeholder=${`Search ${midSentence(spec.plural)}…`} value=${q}
                onInput=${(e: Event) => setQ((e.target as HTMLInputElement).value)} />
-        ${(spec.filters ?? []).map((f) => html`
+        ${otherFilters.map((f) => html`
           <select value=${picked[f.key] ?? ""}
                   onChange=${(e: Event) =>
                     setPicked((p) => ({ ...p, [f.key]: (e.target as HTMLSelectElement).value }))}>
@@ -611,27 +741,6 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
             ${f.options.map((o) => html`<option value=${o}>${o}</option>`)}
           </select>`)}
         <div class="toolbar-note muted">${shown.length} of ${rows.length}</div>
-        ${csv
-          ? html`<button type="button" class="btn" onClick=${exportCsv}
-                   title="The rows shown, as a spreadsheet">Export CSV</button>`
-          : null}
-        ${csv && canEdit
-          ? html`<>
-              <button type="button" class="btn" onClick=${() => importInput.current?.click()}>
-                Import CSV
-              </button>
-              <input ref=${importInput} type="file" accept=".csv,text/csv" style="display:none"
-                onChange=${(e: Event) => {
-                  const input = e.target as HTMLInputElement;
-                  const file = input.files?.[0];
-                  input.value = "";
-                  if (file) void readFile(file);
-                }} />
-            </>`
-          : null}
-        ${canEdit
-          ? html`<button class="btn primary" onClick=${() => open(null)}>Add ${spec.singular.toLowerCase()}</button>`
-          : null}
       </div>
 
       ${importError ? html`<div class="err" role="alert">${importError}</div>` : null}
@@ -651,13 +760,13 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
                 onClick=${() => setImporting(null)}>Cancel</button>
               <button type="button" class="btn small primary" disabled=${importBusy}
                 onClick=${() => void runImport()}>
-                ${importBusy ? "Adding…" : `Add ${importing.rows.length} to ${spec.plural.toLowerCase()}`}
+                ${importBusy ? "Adding…" : `Add ${importing.rows.length} to ${midSentence(spec.plural)}`}
               </button>
             </div>
           </div>`
         : null}
 
-      <table>
+      ${spec.renderRows ? spec.renderRows(shown, open, reload, canEdit) : html`<table>
         <thead>
           <tr>
             <th style="width:52px">#</th>
@@ -665,7 +774,7 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
               <th style=${`${c.width ? `width:${c.width};` : ""}${c.align === "right" ? "text-align:right" : ""}`}>
                 ${c.header}
               </th>`)}
-            ${spec.attachTo ? html`<th style="width:70px">Files</th>` : null}
+            ${spec.attachTo && !spec.ownFiles ? html`<th style="width:70px">Files</th>` : null}
             <th style="width:100px">Updated</th>
           </tr>
         </thead>
@@ -676,7 +785,7 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
               <td class="muted">${row.seq}</td>
               ${spec.columns.map((c) => html`
                 <td style=${c.align === "right" ? "text-align:right" : ""}>${c.cell(row)}</td>`)}
-              ${spec.attachTo
+              ${spec.attachTo && !spec.ownFiles
                 ? html`<td class=${Number(row["attachment_count"] ?? 0) ? "" : "muted"}
                           title=${Number(row["attachment_count"] ?? 0) ? "Files attached" : "No files attached"}>
                     ${Number(row["attachment_count"] ?? 0) ? `\u{1F4CE} ${row["attachment_count"]}` : "—"}
@@ -685,19 +794,30 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
               <td class="muted">${since(row.updated_at)}</td>
             </tr>`)}
         </tbody>
-      </table>
+      </table>`}
 
       ${shown.length === 0
-        ? html`<p class="muted" style="padding:16px 4px">
-            ${rows.length ? "Nothing matches those filters." : `No ${spec.plural.toLowerCase()} recorded yet.`}
-          </p>`
+        ? rows.length
+          ? html`<div class="reg-empty">
+              <b>Nothing matches ${filtered ? "those filters" : "yet"}</b>
+              <p>Try fewer words, or show every ${midSentence(spec.singular)}.</p>
+              <button type="button" class="btn" onClick=${() => { setQ(""); setPicked({}); setLateOnly(false); }}>Clear the filters</button>
+            </div>`
+          : html`<div class="reg-empty">
+              <span class="reg-empty-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/><circle cx="18" cy="16" r="3"/><path d="m20.2 18.2 1.8 1.8"/></svg></span>
+              <b>No ${midSentence(spec.plural)} recorded yet</b>
+              <p>${canEdit
+                ? html`Add the first one${csv ? ", or import a spreadsheet you already keep" : ""}. Everything here is dated and kept in the audit trail.`
+                : "Nothing has been recorded here yet."}</p>
+              ${canEdit ? html`<button type="button" class="btn primary" onClick=${() => open(null)}>Add ${midSentence(spec.singular)}</button>` : null}
+            </div>`
         : null}
     </div>
 
     ${draft
       ? html`<${Modal}
-          title=${editing ? `${spec.singular} ${editing.seq}` : `Add ${spec.singular.toLowerCase()}`}
-          submitLabel=${editing ? "Save changes" : `Add ${spec.singular.toLowerCase()}`}
+          title=${editing ? `${spec.singular} ${editing.seq}` : `Add ${midSentence(spec.singular)}`}
+          submitLabel=${editing ? "Save changes" : `Add ${midSentence(spec.singular)}`}
           busy=${busy}
           error=${formError}
           onClose=${close}
@@ -705,7 +825,13 @@ export function Register<T extends RegisterRow>({ spec, canEdit, links, csv }: {
           onDelete=${editing ? remove : undefined}
         >
           <div class="form-grid">
-            ${spec.fields.map((f) => html`
+            ${spec.fields.filter((f) => !f.showIf || f.showIf(draft)).map((f) => DRAWN.has(f.kind)
+              ? html`<div class=${`fld${f.wide ? " wide" : ""}`}>
+                  <span>${f.label}</span>
+                  ${control(f, draft[f.key])}
+                  ${f.hint ? html`<em class="hint">${f.hint}</em>` : null}
+                </div>`
+              : html`
               <${Field} label=${f.label} hint=${f.hint} wide=${f.wide ?? false}>
                 ${control(f, draft[f.key])}
               <//>`)}

@@ -239,7 +239,7 @@ maybe("reminders", () => {
     expect(onTheDay.subject).toContain("due today");
     expect(onTheDay.subject).toContain("Task 4: B");
 
-    const ahead = buildReminder(mk("step", "Get ready", MANUAL_STEP, 7, "Sara", "sara@example.test"), "before-7", today);
+    const ahead = buildReminder(mk("step", "Plan", MANUAL_STEP, 7, "Sara", "sara@example.test"), "before-7", today);
     expect(ahead.subject).toContain("due in 7 days");
 
     // Each is about one thing, and does not mention anybody else's.

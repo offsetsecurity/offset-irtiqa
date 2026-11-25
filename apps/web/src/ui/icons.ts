@@ -14,7 +14,7 @@ type Shape =
   | ["rect", { x: number; y: number; width: number; height: number; rx?: number }];
 
 export const ICON_SHAPES = {
-  // Get ready: a flag at the end of the route
+  // Plan: a flag at the end of the route
   getready: [["path", { d: "M5 21V4" }], ["path", { d: "M5 4h12l-2.5 4.5L17 13H5" }]],
   // Golden thread: three points joined by one line
   thread: [
@@ -58,6 +58,24 @@ export const ICON_SHAPES = {
   controls: [
     ["path", { d: "M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z" }],
     ["path", { d: "m9 12 2 2 4-4" }],
+  ],
+  // Auditor view: a magnifying glass over a page
+  auditor: [
+    ["path", { d: "M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5" }],
+    ["path", { d: "M8 8h6M8 12h3" }],
+    ["circle", { cx: 16, cy: 15, r: 3.5 }],
+    ["path", { d: "m18.5 17.5 2.5 2.5" }],
+  ],
+  // Sharing: a document going out
+  sharing: [
+    ["path", { d: "M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7" }],
+    ["path", { d: "M14 3v5h5v3" }],
+    ["path", { d: "M16 17h6m-3-3 3 3-3 3" }],
+  ],
+  // The company's controls: a checklist
+  soccontrols: [
+    ["rect", { x: 4, y: 3, width: 16, height: 18, rx: 2 }],
+    ["path", { d: "m8 8 1.5 1.5L12 7M8 14l1.5 1.5L12 13M14 8h3M14 14h3" }],
   ],
   // Evidence: a paperclip
   evidence: [["path", { d: "m20 11-8.5 8.5a5 5 0 0 1-7-7L13 4a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4L14.5 7" }]],
@@ -119,6 +137,13 @@ export const ICON_SHAPES = {
     ["rect", { x: 5, y: 4, width: 14, height: 17, rx: 2 }],
     ["path", { d: "M9 4V3h6v1M9 10h6M9 14h6M9 18h3" }],
   ],
+  // SOC reports: a document with a seal
+  engagements: [
+    ["path", { d: "M6 3h9l4 4v6M6 3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h6" }],
+    ["path", { d: "M9 9h6M9 13h4" }],
+    ["circle", { cx: 17, cy: 17, r: 3 }],
+    ["path", { d: "m15.5 19.5-.5 2.5 2-1 2 1-.5-2.5" }],
+  ],
   // Communications: a speech bubble with lines
   communications: [
     ["path", { d: "M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-5 4V6Z" }],
@@ -150,8 +175,60 @@ export const ICON_SHAPES = {
     ["path", { d: "M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" }],
   ],
   // Hide the menu labels, and show them again
+  // Data map: three linked nodes
+  datamap: [
+    ["circle", { cx: 6, cy: 6, r: 2.5 }],
+    ["circle", { cx: 18, cy: 8, r: 2.5 }],
+    ["circle", { cx: 9, cy: 18, r: 2.5 }],
+    ["path", { d: "M8.4 6.5 15.6 7.6M7 8.4l1.4 7.2M16.5 10l-5.6 6.4" }],
+  ],
+  // DPIAs: a magnifier over a page
+  dpias: [
+    ["path", { d: "M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4" }],
+    ["path", { d: "M8 8h6M8 12h3" }],
+    ["circle", { cx: 16, cy: 15, r: 3.5 }],
+    ["path", { d: "m18.6 17.6 2.4 2.4" }],
+  ],
+  // Requests: a person with a speech bubble
+  requests: [
+    ["circle", { cx: 8, cy: 8, r: 3 }],
+    ["path", { d: "M3 20a5 5 0 0 1 10 0" }],
+    ["path", { d: "M14 4h7v5h-3l-2 2V9h-2z" }],
+  ],
+  // Breaches: a warning triangle
+  breaches: [
+    ["path", { d: "M12 3.5 2.5 20h19z" }],
+    ["path", { d: "M12 10v4.5M12 17.5h.01" }],
+  ],
+  // Monitoring: a pulse
+  monitoring: [["path", { d: "M3 12h4l2.5-6 4 12 2.5-6H21" }]],
+  // Integrations: a plug
+  integrations: [
+    ["path", { d: "M9 3v5M15 3v5" }],
+    ["path", { d: "M6 8h12v3a6 6 0 0 1-12 0V8Z" }],
+    ["path", { d: "M12 17v4" }],
+  ],
+  // A small chevron, for links that lead on
+  chev: [["path", { d: "m9 6 6 6-6 6" }]],
+  // Consent records: a tick in a box
+  consents: [
+    ["rect", { x: 4, y: 4, width: 16, height: 16, rx: 3 }],
+    ["path", { d: "m8.5 12 2.5 2.5 4.5-5" }],
+  ],
   collapse: [["path", { d: "m11 17-5-5 5-5M18 17l-5-5 5-5" }]],
   expand: [["path", { d: "m13 17 5-5-5-5M6 17l5-5-5-5" }]],
+  // Search: a magnifier
+  search: [["circle", { cx: 11, cy: 11, r: 7 }], ["path", { d: "m20 20-3.5-3.5" }]],
+  // Change password: a key
+  key: [["circle", { cx: 8, cy: 15, r: 4 }], ["path", { d: "m10.8 12.2 8.7-8.7M16 7l3 3M14 9l2 2" }]],
+  // Sign out: a door with an arrow leaving
+  logout: [["path", { d: "M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" }], ["path", { d: "M15 16l4-4-4-4M19 12H9" }]],
+  // Something done: a tick
+  check: [["path", { d: "m5 12.5 4.5 4.5L19 7.5" }]],
+  // Arrow on to the next thing
+  arrow: [["path", { d: "M5 12h14M13 6l6 6-6 6" }]],
+  // A spark: something new or automatic
+  spark: [["path", { d: "M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6" }]],
   // Settings: sliders
   settings: [
     ["path", { d: "M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1" }],

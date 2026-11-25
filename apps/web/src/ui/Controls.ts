@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import { html } from "./html.js";
+import { SummaryBand, type Slice } from "./pageParts.js";
 import { controls, type Control, type ControlStatus, type Pack } from "../persistence/apiClient.js";
 import { ControlDetail } from "./ControlDetail.js";
 import type { FixTarget } from "./ControlFix.js";
-import { useTarget, settle, goBack, type Target } from "./deepLink.js";
-import { STATUS_ORDER, STATUS_LABEL, STATUS_PILL, MATURITY_LEVELS, maturityColour, themeColor, since, pct, plural, localDay } from "./format.js";
+import { useTarget, settle, goBack, takeStatusFilter, type Target } from "./deepLink.js";
+import {
+  STATUS_ORDER, STATUS_LABEL, STATUS_PILL, MATURITY_LEVELS, maturityColour,
+  themeColor, since, pct, plural,
+} from "./format.js";
 
 /**
  * The controls register — the screen people actually spend their day in.
@@ -26,9 +30,9 @@ const DEFAULT_TARGET = 3;
  */
 function dueClass(due: string | null): string {
   if (!due) return "muted";
-  const today = localDay();
+  const today = new Date().toISOString().slice(0, 10);
   if (due < today) return "due overdue";
-  const soon = localDay(7);
+  const soon = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
   return due <= soon ? "due soon" : "due";
 }
 
@@ -118,8 +122,8 @@ export function Controls({ themes, themeLabel, itemLabel, canEdit, pack }: {
 
   const [q, setQ] = useState("");
   const [theme, setTheme] = useState("");
-  const [status, setStatus] = useState("");
-
+  // A status chosen on the Dashboard, handed over once.
+  const [status, setStatus] = useState(takeStatusFilter);
   useEffect(() => {
     let live = true;
     controls
@@ -150,6 +154,7 @@ export function Controls({ themes, themeLabel, itemLabel, canEdit, pack }: {
         // the two questions somebody actually asks of a maturity programme:
         // what has nobody looked at, and what is short of its target.
         (!status ||
+          (status === "todo" && (c.status === "in_progress" || c.status === "not_started")) ||
           (scoresMaturity
             ? status === "excluded"
               ? c.status === "not_applicable"
@@ -204,7 +209,24 @@ export function Controls({ themes, themeLabel, itemLabel, canEdit, pack }: {
   ).length;
   const excluded = shown.filter((c) => c.status === "not_applicable").length;
 
+  /** The whole register, not just the filtered rows: the band says where the programme stands. */
+  const countOf = (st: ControlStatus): number => rows.filter((c) => c.status === st).length;
+  const inScope = rows.filter((c) => c.status !== "not_applicable");
+  const noOwner = inScope.filter((c) => !c.owner.trim()).length;
+  const pick = (st: string) => (): void => setStatus(status === st ? "" : st);
+  const band = scoresMaturity ? null : html`<${SummaryBand}
+    lead=${html`<b>${countOf("implemented")} of ${inScope.length}</b>${plural(itemLabel).toLowerCase()} in scope are in place<small>${pct(countOf("implemented"), inScope.length)}%</small>`}
+    slices=${[
+      { label: STATUS_LABEL.implemented, value: countOf("implemented"), tone: "good", on: status === "implemented", onPick: pick("implemented") },
+      { label: STATUS_LABEL.in_progress, value: countOf("in_progress"), tone: "warn", on: status === "in_progress", onPick: pick("in_progress") },
+      { label: STATUS_LABEL.not_started, value: countOf("not_started"), tone: "none", on: status === "not_started", onPick: pick("not_started") },
+      { label: STATUS_LABEL.not_applicable, value: countOf("not_applicable"), tone: "mute", outside: true,
+        on: status === "not_applicable", onPick: pick("not_applicable") },
+    ] as Slice[]}
+    note=${noOwner ? html`<span style="color:var(--amber-ink)">${noOwner} in scope with no owner</span>` : "Every one in scope has an owner"} />`;
+
   return html`<>
+    ${band}
     <div class="card pad">
       <div class="toolbar">
         <input
@@ -231,6 +253,7 @@ export function Controls({ themes, themeLabel, itemLabel, canEdit, pack }: {
           : html`<select value=${status}
                          onChange=${(e: Event) => setStatus((e.target as HTMLSelectElement).value)}>
               <option value="">All statuses</option>
+              <option value="todo">Still to finish</option>
               ${STATUS_ORDER.map((s) => html`<option value=${s}>${STATUS_LABEL[s]}</option>`)}
             </select>`}
         <div class="toolbar-note muted">
@@ -246,13 +269,13 @@ export function Controls({ themes, themeLabel, itemLabel, canEdit, pack }: {
       <table>
         <thead>
           <tr>
-            <th style="width:110px">Ref</th>
+            <th style="width:86px">Ref</th>
             <th>${itemLabel}</th>
-            <th style="width:190px">${scoresMaturity ? "Maturity" : "Status"}</th>
-            <th style="width:170px">Owner</th>
-            <th style="width:104px">Due</th>
-            <th style="width:96px">Evidence</th>
-            <th style="width:110px">Updated</th>
+            <th style="width:156px">${scoresMaturity ? "Maturity" : "Status"}</th>
+            <th style="width:156px">Owner</th>
+            <th style="width:92px">Due</th>
+            <th style="width:84px">Evidence</th>
+            <th style="width:86px">Updated</th>
           </tr>
         </thead>
         <tbody>

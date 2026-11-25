@@ -91,5 +91,5 @@ test("Add new evidence opens the control's own Evidence section, and returns to 
   await expect(page.locator(".modal")).toContainText(c.ref);
   await expect(page.locator('.modal [data-fix="evidence"]')).toBeInViewport();
   await page.locator(".modal").getByRole("button", { name: "Cancel" }).click();
-  await expect(page).toHaveURL(/#\/risks\/thread$/);
+  await expect(page).toHaveURL(/#\/thread$/);
 });

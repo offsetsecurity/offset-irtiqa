@@ -196,7 +196,7 @@ export function Baseline({ canEdit, itemLabel }: {
         </div>
         <div class="fn-body">
           <div class="fn-head"><span>Implemented</span><b>${pct(implemented, inScope.length)}%</b></div>
-          ${bar(pct(implemented, inScope.length), "#16a34a")}
+          ${bar(pct(implemented, inScope.length), "#14915A")}
           <div class="fn-note muted">${implemented} of ${inScope.length} in scope</div>
         </div>
       </div>

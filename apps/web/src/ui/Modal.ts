@@ -16,7 +16,7 @@ const readExpanded = (): boolean => {
  * It can be made full size with the button beside ×, which is remembered, and
  * dragged larger by its bottom-right corner.
  */
-export function Modal({ title, onClose, onSubmit, submitLabel, busy, error, children, onDelete }: {
+export function Modal({ title, onClose, onSubmit, submitLabel, busy, error, children, onDelete, wide }: {
   title: string;
   onClose: () => void;
   onSubmit: (e: Event) => void;
@@ -25,6 +25,8 @@ export function Modal({ title, onClose, onSubmit, submitLabel, busy, error, chil
   error?: string;
   children?: unknown;
   onDelete?: () => void;
+  /** A wider window, for content that needs room rather than a short form. */
+  wide?: boolean;
 }): VNode {
   const ref = useRef<HTMLDialogElement | null>(null);
   const [expanded, setExpanded] = useState(readExpanded);
@@ -48,7 +50,7 @@ export function Modal({ title, onClose, onSubmit, submitLabel, busy, error, chil
   }, [onClose]);
 
   return html`
-    <dialog class=${`modal${expanded ? " expanded" : ""}`} ref=${ref}>
+    <dialog class=${`modal${wide ? " wide" : ""}${expanded ? " expanded" : ""}`} ref=${ref}>
       <form method="dialog" onSubmit=${onSubmit}>
         <header>
           <h2>${title}</h2>
