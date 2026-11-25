@@ -17,6 +17,10 @@ Every release is numbered x.y.z, for example 1.4.2:
 
 ## [Unreleased]
 
+### Changed
+- **Offset Irtiqa is now open source,** under the Apache License 2.0. It is still
+  free. You may use, change and share it. See `LICENSE`.
+
 ### Fixed (0.2.35)
 - **Docker: uploaded evidence files survive updates.** The image never told the
   application where the evidence volume was, so files were kept inside the

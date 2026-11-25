@@ -122,5 +122,5 @@ is concurrent writers, not users. The decision, and the signal that would make
 us revisit it, are written down in
 [ADR 0002](dev/adr/0002-sqlite-not-postgres.md).
 
-**Is it open source?** No. It is free to use, closed source, one edition. See
-[LICENSE](../LICENSE).
+**Is it open source?** Yes. It is free and open source, under the Apache
+License 2.0, one edition. See [LICENSE](../LICENSE).
