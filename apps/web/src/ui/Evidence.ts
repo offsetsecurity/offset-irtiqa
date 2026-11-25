@@ -7,15 +7,16 @@ import {
   evidence, evidenceToInput, controls,
   type Evidence as EvidenceRow, type EvidenceInput, type Freshness, type Control,
 } from "../persistence/apiClient.js";
-import { since, plural, localDay } from "./format.js";
+import { plural, localDay } from "./format.js";
+import { SummaryBand, type Slice } from "./pageParts.js";
 
 /** The 30-60-90 ladder the API computes. Order matters: worst first. */
 const FRESHNESS: { key: Freshness; label: string; colour: string; note: string }[] = [
-  { key: "stale", label: "Stale", colour: "#dc2626", note: "older than 90 days" },
-  { key: "due", label: "Due", colour: "#ea580c", note: "60–90 days" },
-  { key: "ageing", label: "Ageing", colour: "#d97706", note: "30–60 days" },
-  { key: "fresh", label: "Fresh", colour: "#16a34a", note: "within 30 days" },
-  { key: "unknown", label: "No date", colour: "#94a3b8", note: "never recorded" },
+  { key: "stale", label: "Stale", colour: "#D2333D", note: "older than 90 days" },
+  { key: "due", label: "Due", colour: "#D75A12", note: "60–90 days" },
+  { key: "ageing", label: "Ageing", colour: "#C47A06", note: "30–60 days" },
+  { key: "fresh", label: "Fresh", colour: "#14915A", note: "within 30 days" },
+  { key: "unknown", label: "No date", colour: "#97A0B1", note: "never recorded" },
 ];
 
 const TYPES = ["Document", "Screenshot", "Export", "Report", "Approval", "Minutes", "Assessment", "Log"];
@@ -242,37 +243,29 @@ export function Evidence({ itemLabel, canEdit }: { itemLabel: string; canEdit: b
     FRESHNESS.find((f) => f.key === key) ?? FRESHNESS[FRESHNESS.length - 1]!;
 
   return html`<>
-    <div class="card pad" style="margin-bottom:16px">
-      <div class="section-title"><h2>Freshness</h2>
-        <span class="muted" style="font-size:12px">evidence ages — an assessor wants recent proof</span>
-      </div>
-      <div class="fresh-strip">
-        ${FRESHNESS.map((f) => {
-          const n = rows.filter((e) => e.freshness === f.key).length;
-          const active = freshness === f.key;
-          return html`
-            <button type="button" class=${`fresh-tile${active ? " active" : ""}`}
-                    style=${`--tile:${f.colour}`}
-                    onClick=${() => setFreshness(active ? "" : f.key)}>
-              <div class="fresh-n">${n}</div>
-              <div class="fresh-l">${f.label}</div>
-              <div class="fresh-note">${f.note}</div>
-            </button>`;
-        })}
-      </div>
-    </div>
+    <${SummaryBand}
+      lead=${html`<b>${rows.filter((e) => e.freshness === "fresh").length} of ${rows.length}</b>pieces of evidence are fresh<small>collected in the last 30 days</small>`}
+      slices=${([["fresh", "good"], ["ageing", "info"], ["due", "warn"], ["stale", "bad"], ["unknown", "none"]] as const).map(([k, tone]) => ({
+        label: `${meta(k).label} · ${meta(k).note}`,
+        value: rows.filter((e) => e.freshness === k).length,
+        tone,
+        on: freshness === k,
+        onPick: () => setFreshness(freshness === k ? "" : k),
+      })) as Slice[]}
+      note="An auditor wants recent proof: stale items need a newer copy." />
 
     <div class="card pad">
       <div class="toolbar">
-        <input type="search" placeholder="Search evidence…" value=${q}
+        <input type="search" aria-label="Search evidence" placeholder="Search evidence…" value=${q}
                onInput=${(e: Event) => setQ((e.target as HTMLInputElement).value)} />
-        <select value=${freshness} onChange=${(e: Event) => setFreshness((e.target as HTMLSelectElement).value)}>
+        <select aria-label="Age" value=${freshness} onChange=${(e: Event) => setFreshness((e.target as HTMLSelectElement).value)}>
           <option value="">All ages</option>
           ${FRESHNESS.map((f) => html`<option value=${f.key}>${f.label}</option>`)}
         </select>
-        <div class="toolbar-note muted">${shown.length} of ${rows.length}</div>
+        <div class="toolbar-note muted" aria-live="polite">${shown.length} of ${rows.length}</div>
         ${canEdit
-          ? html`<button class="btn primary" onClick=${() => open(null)}>Add evidence</button>`
+          // Proof is added where it proves something, so it is linked as it arrives.
+          ? html`<span class="ev-where muted">To add evidence, open a <a href="#/controls">control</a> and use Upload a file.</span>`
           : null}
       </div>
 
@@ -318,7 +311,9 @@ export function Evidence({ itemLabel, canEdit }: { itemLabel: string; canEdit: b
       </table>
 
       ${shown.length === 0
-        ? html`<p class="muted" style="padding:16px 4px">No evidence matches those filters.</p>`
+        ? html`<p class="muted" style="padding:16px 4px">${rows.length === 0
+            ? "No evidence recorded yet."
+            : html`No evidence matches those filters. <button type="button" class="btn small ghost" onClick=${() => { setQ(""); setFreshness(""); }}>Clear all</button>`}</p>`
         : null}
     </div>
 

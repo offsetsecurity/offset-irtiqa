@@ -66,7 +66,7 @@ Part of [the SAMA handbook](sama-01-how-assessment-works.md). Previous:
 - SAMA approved each cloud service before use, and data stays in Saudi Arabia
   unless SAMA explicitly approved otherwise.
 
-**In Offset Irtiqa.** **Get ready** tracks much of this. The **Gap report**
+**In Offset Irtiqa.** **Plan** tracks much of this. The **Gap report**
 lists every control below its target, and the **Readiness plan** turns the
 gaps into dated work.
 

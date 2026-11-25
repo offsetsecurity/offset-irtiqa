@@ -131,7 +131,7 @@ Then, in order:
 1. **Settings** - add your colleagues, and your logo for the reports
 2. **Settings, Email** - point it at your mail server, so it can send
    reminders and password resets
-3. **Get ready** - the plan. Start at the top
+3. **Plan** - the plan. Start at the top
 
 **HTTPS.** Out of the box it serves plain HTTP and only answers this machine.
 To let colleagues reach it you must give it a certificate first - it refuses

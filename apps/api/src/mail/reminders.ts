@@ -202,7 +202,7 @@ export async function allItems(): Promise<DueItem[]> {
     ...steps.rows.map((r) => ({
       kind: "step" as const,
       key: `journey_tasks:${r.task_id}`,
-      ref: "Get ready",
+      ref: "Plan",
       title: r.task_id,
       due_date: r.due_date,
       owner: r.owner,

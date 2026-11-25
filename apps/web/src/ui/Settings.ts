@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import { html } from "./html.js";
+import { SettingsOverview, SettingsTabs, SETTINGS_TABS, useOverview, type SettingsTab } from "./SettingsOverview.js";
 import { Updates } from "./Updates.js";
 import { Certificate } from "./Certificate.js";
 import { ExampleData } from "./ExampleData.js";
@@ -41,11 +42,27 @@ const EMPTY: Draft = {
 
 type Note = { kind: "ok" | "err"; text: string } | null;
 
+/** Which tab the address names: #/settings is the Overview, #/settings/email is Outgoing email. */
+function tabFromHash(hasExample: boolean): SettingsTab {
+  const id = /^#\/?settings\/([a-z]+)/.exec(window.location.hash)?.[1];
+  const hit = SETTINGS_TABS.find((t) => t.id === id);
+  return hit && (hit.id !== "example" || hasExample) ? hit.id : "overview";
+}
+
 export function Settings({ me, features }: {
   me: SessionUser;
   /** The pack's feature flags, for the sections not every product has. */
   features: Record<string, boolean>;
 }): VNode {
+  const hasExample = Boolean(features["demoData"]);
+  const [tab, setTab] = useState<SettingsTab>(() => tabFromHash(hasExample));
+  useEffect(() => {
+    const onHash = (): void => setTab(tabFromHash(hasExample));
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, [hasExample]);
+  // Read again each time a tab opens, so the pills and boxes never show a section as it was before it was saved.
+  const overview = useOverview(hasExample, tab);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [hasPassword, setHasPassword] = useState(false);
   /**
@@ -228,12 +245,13 @@ export function Settings({ me, features }: {
 
   return html`
     <div class="settings-stack">
-      <${Updates} />
+      <${SettingsTabs} active=${tab} state=${overview} hasExample=${hasExample} />
+      <div class="gs-panel" hidden=${tab !== "overview"}><${SettingsOverview} state=${overview} hasExample=${hasExample} /></div>
+      <div class="gs-panel" hidden=${tab !== "updates"}><${Updates} /></div>
+      <div class="gs-panel" hidden=${tab !== "https"}><${Certificate} /></div>
+      ${hasExample ? html`<div class="gs-panel" hidden=${tab !== "example"}><${ExampleData} /></div>` : null}
 
-      <${Certificate} />
-
-      ${features["demoData"] ? html`<${ExampleData} />` : null}
-
+      <div class="gs-panel" hidden=${tab !== "email"}>
       <form class="card pad" onSubmit=${save}>
         <h2 class="section-h">Outgoing email</h2>
         <p class="muted section-note">
@@ -390,7 +408,9 @@ export function Settings({ me, features }: {
           </button>
         </div>
       </div>
+      </div>
 
+      <div class="gs-panel" hidden=${tab !== "digest"}>
       <form class="card pad" onSubmit=${saveDigest}>
         <h2 class="section-h">Daily digest</h2>
         <p class="muted section-note">
@@ -478,5 +498,7 @@ export function Settings({ me, features }: {
             </div>`
           : null}
       </form>
+      </div>
+
     </div>`;
 }

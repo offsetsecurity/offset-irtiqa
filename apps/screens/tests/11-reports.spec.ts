@@ -32,6 +32,9 @@ test("downloading a report says who took it, and the board paper is a PDF", asyn
 test("Download all gives one zip with every report in it", async ({ page }) => {
   test.setTimeout(120_000);
   await open(page, "reports");
+  // Count only once the list is on the screen: counting straight away read 0
+  // on a slow start, and the test failed one run in three.
+  await expect(page.locator(".rb-feature, .rb-row").first()).toBeVisible();
   const count = await page.locator(".rb-feature, .rb-row").count();
   const button = page.getByRole("button", { name: /Download all/ });
   const [download] = await Promise.all([page.waitForEvent("download", { timeout: 90_000 }), button.click()]);
@@ -39,6 +42,7 @@ test("Download all gives one zip with every report in it", async ({ page }) => {
   const zip = Buffer.concat(await (await download.createReadStream()).toArray());
   expect(zip.subarray(0, 4).toString("latin1")).toBe("PK\u0003\u0004");
   // One local header per report, each a PDF.
+  // eslint-disable-next-line no-control-regex -- the zip signature holds control characters
   expect((zip.toString("latin1").match(/PK\u0003\u0004/g) ?? []).length).toBe(count);
   expect((zip.toString("latin1").match(/%PDF-/g) ?? []).length).toBe(count);
   await expect(button).toHaveText(/Download all/);

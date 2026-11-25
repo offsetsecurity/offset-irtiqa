@@ -213,7 +213,7 @@ export function Risks({ canEdit, controls = [], itemLabel = "control" }: {
         <div class="legend">
           ${RISK_STATUSES.map((s) => html`
             <div>
-              <span class="dot" style="background:#cbd5e1"></span>
+              <span class="dot" style="background:#D3D8E1"></span>
               <span>${s}</span>
               <b>${shown.filter((r) => r.status === s).length}</b>
             </div>`)}

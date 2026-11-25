@@ -2,10 +2,12 @@ import { useEffect, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import { html } from "./html.js";
 import { donut, radar, themeGrid, bar } from "./charts.js";
-import { controls, risks, evidence, readiness, type Risk, type Pack, type ReadinessDashboard } from "../persistence/apiClient.js";
-import { FlightPath, LensSwitch, Forecast, Team } from "./ReadyDashboard.js";
+import { controls, risks, evidence, readiness, type Control, type Risk, type Pack, type ReadinessDashboard } from "../persistence/apiClient.js";
+import { openWithStatus } from "./deepLink.js";
+import { FlightPath, Forecast, Team } from "./ReadyDashboard.js";
+import { HomeHero } from "./Home.js";
 import {
-  STATUS_ORDER, STATUS_LABEL, STATUS_COLOR, RISK_BAND_COLOR, MATURITY_LEVELS,
+  STATUS_ORDER, STATUS_LABEL, STATUS_COLOR, STATUS_PILL, RISK_BAND_COLOR, MATURITY_LEVELS,
   themeColor, pct, plural,
 } from "./format.js";
 
@@ -18,6 +20,8 @@ interface Data {
   risks: RiskSummary;
   topRisks: Risk[];
   evidence: EvidenceSummary;
+  /** In scope and not implemented yet: what is still to finish. */
+  todo: Control[];
 }
 
 /**
@@ -35,15 +39,16 @@ function kpi(
   goTo: string,
 ): VNode {
   return html`
-    <a class="card pad stat" href=${`#/${goTo}`} style=${`border-left:3px solid ${accent}`}>
-      <div class="go" aria-hidden="true">›</div>
+    <a class="card pad stat kpi" href=${`#/${goTo}`} style=${`--accent:${accent}`}>
+      <div class="go" aria-hidden="true">→</div>
       <div class="lbl">${label}</div>
       <div class="val">${value}</div>
       <div class="delta">${note}</div>
     </a>`;
 }
 
-export function Dashboard({ themes, themeLabel, itemLabel, pack }: {
+export function Dashboard({ themes, themeLabel, itemLabel, pack, name = "" }: {
+  name?: string;
   themes: Record<string, string>;
   themeLabel: string;
   itemLabel: string;
@@ -60,11 +65,15 @@ export function Dashboard({ themes, themeLabel, itemLabel, pack }: {
 
   useEffect(() => {
     let live = true;
-    Promise.all([controls.summary(), risks.summary(), risks.list(), evidence.summary()])
-      .then(([c, r, list, e]) => {
+    Promise.all([controls.summary(), risks.summary(), risks.list(), evidence.summary(), controls.list()])
+      .then(([c, r, list, e, all]) => {
         if (!live) return;
         const topRisks = [...list.risks].sort((a, b) => b.inherent - a.inherent).slice(0, 5);
-        setData({ controls: c, risks: r, topRisks, evidence: e });
+        const rank = (x: Control): number => (x.status === "not_started" ? 0 : 1);
+        const todo = all.controls
+          .filter((x) => x.status === "in_progress" || x.status === "not_started")
+          .sort((a, b) => rank(a) - rank(b) || a.ref.localeCompare(b.ref, undefined, { numeric: true }));
+        setData({ controls: c, risks: r, topRisks, evidence: e, todo });
       })
       .catch((err: Error) => live && setError(err.message));
     return () => { live = false; };
@@ -73,7 +82,7 @@ export function Dashboard({ themes, themeLabel, itemLabel, pack }: {
   if (error) return html`<div class="card pad err">${error}</div>`;
   if (!data) return html`<div class="card pad muted">Loading…</div>`;
 
-  const { controls: cs, risks: rs, topRisks, evidence: ev } = data;
+  const { controls: cs, risks: rs, topRisks, evidence: ev, todo } = data;
   const m = cs.maturity;
   /**
    * Two figures rather than one, and they answer different questions.
@@ -133,28 +142,39 @@ export function Dashboard({ themes, themeLabel, itemLabel, pack }: {
    * everything sitting in "Not Started" for ever. The spread of levels is the
    * same question asked of the data that actually exists.
    */
-  const LEVEL_COLOR = ["#94a3b8", "#dc2626", "#ea580c", "#d97706", "#16a34a", "#0f766e"];
+  const LEVEL_COLOR = ["#97A0B1", "#D2333D", "#D75A12", "#C47A06", "#14915A", "#0f766e"];
   const statusSlices = scoresMaturity
     ? [
         ...MATURITY_LEVELS.map((l) => ({
           label: `${l.level} · ${l.name}`,
           value: m.byLevel[String(l.level)] ?? 0,
-          color: LEVEL_COLOR[l.level] ?? "#94a3b8",
+          color: LEVEL_COLOR[l.level] ?? "#97A0B1",
+          onPick: () => openWithStatus(`level:${l.level}`),
         })),
-        ...(m.unscored ? [{ label: "Not scored", value: m.unscored, color: "#cbd5e1" }] : []),
+        ...(m.unscored ? [{ label: "Not scored", value: m.unscored, color: "#D3D8E1", onPick: () => openWithStatus("unscored") }] : []),
       ]
     : STATUS_ORDER.map((s) => ({
         label: STATUS_LABEL[s],
         value: cs.byStatus[s] ?? 0,
         color: STATUS_COLOR[s],
+        onPick: () => openWithStatus(s),
       }));
+  const sliceTotal = statusSlices.reduce((a, x) => a + x.value, 0);
+  /** Each line's share: of what is in scope for a status, of everything for a level. */
+  const shareOf = (i: number): string => {
+    const v = statusSlices[i]!.value;
+    if (scoresMaturity) return `${pct(v, sliceTotal)}%`;
+    return STATUS_ORDER[i] === "not_applicable" ? `of ${sliceTotal}` : `${pct(v, cs.applicable)}%`;
+  };
 
   return html`<>
+    <${HomeHero} name=${name} d=${readyData} words=${pack.readiness} pct=${scoresMaturity ? m.atTargetPct : cs.readinessPct}
+      ringLabel=${scoresMaturity ? "at or above target" : "in place"}
+      gaps=${scoresMaturity ? null : ev.controlsImplementedWithoutEvidence} journey=${Boolean(pack.features?.["journey"])} />
     ${ready && readyData
       ? html`<div class="sd-top">
-          <${FlightPath} d=${readyData} words=${pack.readiness}
+          <${FlightPath} d=${readyData} words=${pack.readiness} showRing=${false}
             label=${pack.features?.["maturity"] ? "at or above target" : "controls in place"} />
-          <${LensSwitch} d=${readyData} words=${pack.readiness} />
         </div>`
       : null}
     <div class="grid cards">
@@ -164,21 +184,21 @@ export function Dashboard({ themes, themeLabel, itemLabel, pack }: {
               m.unscored
                 ? html`<span style="color:var(--muted)">${m.scored} of ${m.total} scored so far</span>`
                 : `${m.atTarget} of ${m.scored} ${plural(itemLabel).toLowerCase()} at level ${m.defaultTarget} or better`,
-              "#1e3a8a", "controls")}
+              "#183A8F", "controls")}
             ${kpi("Average maturity", m.scored ? m.average.toFixed(1) : "—",
               m.scored
                 ? `across ${m.scored} scored ${plural(itemLabel).toLowerCase()}, out of 5`
                 : "nothing scored yet",
-              "#4338ca", "controls")}
+              "#5546C8", "controls")}
           </>`
         : kpi("Profile readiness", `${cs.readinessPct}%`,
             `${cs.implemented} of ${cs.applicable} in-scope ${plural(itemLabel).toLowerCase()} implemented`,
-            "#1e3a8a", "controls")}
+            "#183A8F", "controls")}
       ${kpi("Open risks", openRisks,
         rs.byBand["critical"]
           ? html`<span style="color:var(--red)">${rs.byBand["critical"]} critical</span>`
           : `${rs.total} in the register`,
-        "#b91c1c", "risks")}
+        "#B42830", "risks")}
       ${kpi("Evidence items", ev.total,
         stale ? html`<span style="color:var(--amber)">${stale} need refreshing</span>`
               : `${fresh} collected recently`,
@@ -189,7 +209,7 @@ export function Dashboard({ themes, themeLabel, itemLabel, pack }: {
             ev.controlsImplementedWithoutEvidence
               ? html`<span style="color:var(--red)">implemented, nothing to prove it</span>`
               : "every implemented item has proof",
-            ev.controlsImplementedWithoutEvidence ? "#b45309" : "#0f766e", "evidence")}
+            ev.controlsImplementedWithoutEvidence ? "#A86405" : "#0f766e", "evidence")}
     </div>
 
     <div class="grid two" style="margin-top:16px">
@@ -257,24 +277,36 @@ export function Dashboard({ themes, themeLabel, itemLabel, pack }: {
       <div class="card pad">
         <div class="section-title">
           <h2>${scoresMaturity ? "Maturity spread" : `${itemLabel} status`}</h2>
+          <a class="st-open" href="#/controls">Open ${plural(itemLabel)} →</a>
         </div>
         <div class="donut-wrap">
           ${scoresMaturity
             ? donut(statusSlices, m.average.toFixed(1), "average")
             : donut(statusSlices, String(cs.readinessPct) + "%", "ready")}
-          <div class="legend">
-            ${statusSlices.map((slice) => html`
-              <div>
+          <div class="legend st-legend">
+            ${statusSlices.map((slice, i) => html`
+              <a href="#/controls" onClick=${(e: Event) => { e.preventDefault(); slice.onPick?.(); }}
+                 title=${`Open the ${plural(itemLabel).toLowerCase()}: ${slice.label}`}>
                 <span class="dot" style=${`background:${slice.color}`}></span>
                 <span>${slice.label}</span>
                 <b>${slice.value}</b>
-              </div>`)}
+                <span class="st-pct">${shareOf(i)}</span>
+                <span class="st-go" aria-hidden="true">›</span>
+              </a>`)}
           </div>
         </div>
+        ${scoresMaturity ? null : html`<div class="st-next">
+          <div class="st-next-h">${todo.length ? `Still to finish · ${todo.length}` : `Every ${itemLabel.toLowerCase()} in scope is implemented`}</div>
+          ${todo.slice(0, 5).map((c) => html`<a class="st-item" key=${c.id} href=${`#/controls/${encodeURIComponent(c.id)}`}>
+            <span class="st-ref">${c.ref}</span>
+            <span class="st-t">${c.title}<small>${c.owner || "Nobody yet"}</small></span>
+            <span class=${`pill ${STATUS_PILL[c.status]}`}>${STATUS_LABEL[c.status]}</span></a>`)}
+          ${todo.length > 5 ? html`<a class="st-all" href="#/controls" onClick=${(e: Event) => { e.preventDefault(); openWithStatus("todo"); }}>Show all ${todo.length} →</a>` : null}
+        </div>`}
       </div>
 
       <div class="card pad">
-        <div class="section-title"><h2>Top risks</h2></div>
+        <div class="section-title"><h2>Top risks</h2><a class="st-open" href="#/risks">Open Risks →</a></div>
         ${topRisks.length
           ? html`<table>
               <thead><tr><th>Risk</th><th>Owner</th><th style="text-align:right">Score</th></tr></thead>
@@ -302,7 +334,7 @@ export function Dashboard({ themes, themeLabel, itemLabel, pack }: {
             <${Forecast} d=${readyData} words=${pack.readiness} />
             <${Team} d=${readyData} />
           </div>
-          <p class="muted" style="font-size:12.5px;margin:12px 0 0">Every number here is improved on Get ready. <a href="#/getready">Go to Get ready →</a></p>
+          <p class="muted" style="font-size:12.5px;margin:12px 0 0">Every number here is improved on Plan. <a href="#/getready">Go to Plan →</a></p>
         </>`
       : null}</>`;
 }

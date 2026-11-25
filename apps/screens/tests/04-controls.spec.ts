@@ -77,6 +77,9 @@ test("No risk linked opens a picker right in the window, and saving links the ri
 
   await row.locator("td").nth(1).click();
   const strip = page.locator(".thread-strip");
+  // The window fills in a moment after it opens: wait for the strip before deciding it is not there
+  // (a count taken at once skipped this test on a busy machine).
+  await strip.first().waitFor({ timeout: 5000 }).catch(() => undefined);
   test.skip(await strip.count() === 0, "This product does not show the strip yet.");
   await strip.getByRole("button", { name: /No risk linked/ }).click();
   const picker = page.locator(".ts-link");

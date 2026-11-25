@@ -36,8 +36,8 @@ test("closing a control opened from the thread goes back to the thread", async (
   await page.goto(`/#/controls/${c.id}?fix=owner&back=thread`);
   await expect(page.locator(".modal")).toContainText(c.ref);
   await page.locator(".modal").getByRole("button", { name: "Cancel" }).click();
-  await expect(page).toHaveURL(/#\/risks\/thread$/);
-  await expect(page.locator(".sub-tabs button.sel")).toHaveText("Golden thread");
+  await expect(page).toHaveURL(/#\/thread$/);
+  await expect(page.locator("h1")).toHaveText("Golden thread");
 });
 
 test("a link to a control's evidence scrolls to its Evidence section", async ({ page }) => {
@@ -62,7 +62,7 @@ test("a link to a risk opens that risk with the Owner box selected", async ({ pa
   await expect(page.locator(".modal")).toContainText(`Risk ${r.seq}`);
   await expect(page.locator('.modal [data-fix="owner"]')).toBeFocused();
   await page.locator(".modal").getByRole("button", { name: "Cancel" }).click();
-  await expect(page).toHaveURL(/#\/risks\/thread$/);
+  await expect(page).toHaveURL(/#\/thread$/);
 });
 
 test("a link to a risk's controls selects its Controls box", async ({ page }) => {
@@ -98,7 +98,7 @@ test("on the Golden thread, a broken risk's fix button opens that risk, ready to
   await expect(page.locator(".modal")).toContainText(`Risk ${r.seq}`);
   await expect(page.locator('.modal [data-fix="controls"] .lp-search')).toBeFocused();
   await page.locator(".modal").getByRole("button", { name: "Cancel" }).click();
-  await expect(page).toHaveURL(/#\/risks\/thread$/);
+  await expect(page).toHaveURL(/#\/thread$/);
 });
 
 test("no fix button on the Golden thread points at a general list any more", async ({ page }) => {

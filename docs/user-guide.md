@@ -10,7 +10,7 @@ You do not need to read this end to end. Find what you are trying to do.
 | Understand what this is for | [What it does](#what-it-does) |
 | Sign in the first time | [Getting in](#getting-in) |
 | Know what the front page is telling me | [Dashboard](#dashboard) |
-| Be told what to do next | [Get ready](#get-ready) |
+| Be told what to do next | [Plan](#plan) |
 | Check every risk is treated, and the proof is current | [Golden thread](#golden-thread) |
 | Record what we have and have not done | [Controls](#controls) |
 | Score maturity out of 5 | [Maturity scoring](#maturity-scoring) |
@@ -87,7 +87,7 @@ right of any screen.
 **"Your connection is not private"** or **"Not secure"** means the server has
 no certificate your browser trusts. Do not click through. Tell your
 administrator: they can fix it for everyone in a few minutes, under
-**Settings → HTTPS certificate**, with a certificate from your IT team. It costs
+**Settings → HTTPS**, with a certificate from your IT team. It costs
 nothing.
 
 ### What you are allowed to do
@@ -105,7 +105,7 @@ If a button is missing or a change is refused, that is your role, not a fault.
 
 ---
 
-## Get ready
+## Plan
 
 If you have never done this before, start here.
 
@@ -177,7 +177,7 @@ stands, what is still to do, what you excluded and why, and who decided each
 one. It is the document to take to your management when nobody has asked you
 for a report yet.
 
-### Get ready with the SAMA framework
+### The Plan with the SAMA framework
 
 7 stages, 24 steps. 13 of them are checked for you. What the plan works
 towards is level 3 across the framework, which is the level a member
@@ -205,7 +205,7 @@ meeting. You tick those.
 ## Golden thread
 
 Every risk, the controls that treat it, and the proof that they work, drawn as
-one map. In the menu under **Get ready**.
+one map. In the menu under **Plan**.
 
 It is the line an auditor follows. They pick a risk, ask what reduces it, and
 ask to see that working. A break anywhere along the line is where a finding
@@ -248,7 +248,7 @@ treat this risk**.
 One piece of proof often backs several controls. Fixing it, by collecting a
 fresh copy and updating its date, fixes all of them.
 
-The figures across the top are the same ones the Get ready page shows.
+The figures across the top are the same ones the Plan page shows.
 Products with a very large framework open on **Only problems**.
 
 ## Dashboard
@@ -476,7 +476,7 @@ never seen the screen can follow it.
 remediation plan, in order. Anything nobody has assessed is at the bottom, since
 not knowing is its own gap.
 
-**Readiness plan** is the plan from [Get ready](#get-ready) on paper: where each
+**Readiness plan** is the plan from [Plan](#plan) on paper: where each
 stage stands, what is left, what you excluded and why.
 
 ---
@@ -644,7 +644,7 @@ PDFs to hand to someone. Click **Download** on any of them.
 | **Gap report** | Everything not yet implemented, and who owns it |
 | **Risk register** | The full register with scores and treatments |
 | **Evidence register** | What proof you hold and how fresh it is |
-| **Readiness plan** | Your Get ready plan on paper |
+| **Readiness plan** | Your Plan on paper |
 
 ### Your own logo
 
@@ -734,6 +734,10 @@ the accounts as they were in the backup.
 ## Settings
 
 Administrators only.
+
+Settings opens on an **Overview**: a box for each section, saying whether it is
+on and what changed last, and **About this server**, with a **Copy details**
+button. A strip of tabs across the top opens each section on its own.
 
 **Outgoing email** — optional. Everything works without it. Set it up and you
 can send the daily digest.

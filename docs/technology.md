@@ -88,7 +88,7 @@ changing the wording of a requirement never means touching the application.
 | What you work through | 183 controls, in 4 domains |
 | Called | Control / Domain |
 | Guidance per item | Plain English: what it means, what to do, what an assessor looks for, what proof to keep |
-| Get ready | 7 stages, 24 steps, 13 checked for you |
+| Plan | 7 stages, 24 steps, 13 checked for you |
 | Sample library | 98 assets, 43 risks |
 | Help in the product | 10 pages |
 

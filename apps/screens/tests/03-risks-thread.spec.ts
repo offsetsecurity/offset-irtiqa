@@ -3,27 +3,22 @@ import { signIn, open, has } from "./support.js";
 
 test.beforeEach(async ({ page }) => { await signIn(page); });
 
-test("Risks has three tabs: Register, Sample library and Golden thread", async ({ page }) => {
+test("Golden thread has its own place under Risk and assets", async ({ page }) => {
   await open(page, "risks");
   const tabs = page.locator(".sub-tabs").first().getByRole("button");
-  await expect(tabs).toHaveText(["Register", "Sample library", "Golden thread"]);
-  await expect(page.locator('.sidebar .nav a[href="#/thread"]')).toHaveCount(0);
-});
-
-test("the Golden thread tab opens the thread, by click and by address", async ({ page }) => {
-  await open(page, "risks");
-  await page.locator(".sub-tabs").first().getByRole("button", { name: "Golden thread" }).click();
-  await expect(page.locator(".sub-tabs button.sel")).toHaveText("Golden thread");
-  await page.goto("/#/risks/thread");
-  await page.reload();
-  await expect(page.locator(".sub-tabs button.sel")).toHaveText("Golden thread");
+  await expect(tabs).toHaveText(["Register", "Sample library"]);
+  const items = page.locator('.sidebar .nav a[href="#/risks"], .sidebar .nav a[href="#/thread"], .sidebar .nav a[href="#/assets"]');
+  await expect(items).toHaveCount(3);
+  await page.locator('.sidebar .nav a[href="#/thread"]').click();
+  await expect(page.locator('.sidebar .nav a[href="#/thread"]')).toHaveClass(/active/);
+  await expect(page.locator("h1")).toHaveText("Golden thread");
 });
 
 test("an old link to the Golden thread still lands on it", async ({ page }) => {
-  await page.goto("/#/thread");
+  await page.goto("/#/risks/thread");
   await page.reload();
-  await expect(page.locator('.sidebar .nav a[href="#/risks"]')).toHaveClass(/active/);
-  await expect(page.locator(".sub-tabs button.sel")).toHaveText("Golden thread");
+  await expect(page.locator('.sidebar .nav a[href="#/thread"]')).toHaveClass(/active/);
+  await expect(page.locator("h1")).toHaveText("Golden thread");
 });
 
 test("a risk added from the Sample library arrives linked to its controls", async ({ page }) => {
@@ -45,10 +40,8 @@ test("a risk added from the Sample library arrives linked to its controls", asyn
   for (const ref of refs) expect(linked, `control ${ref} is linked`).toContain(ref);
 });
 
-test("from the Golden thread tab, a link back to the risk register works", async ({ page }) => {
-  await open(page, "risks");
-  await page.locator(".sub-tabs").first().getByRole("button", { name: "Golden thread" }).click();
-  await expect(page).toHaveURL(/#\/risks\/thread$/);
+test("from the Golden thread, a link back to the risk register works", async ({ page }) => {
+  await open(page, "thread");
   // The menu's Risks link, like "Open the risk register", goes to "#/risks".
   await page.locator('.sidebar .nav a[href="#/risks"]').click();
   await expect(page.locator(".sub-tabs button.sel")).toHaveText("Register");

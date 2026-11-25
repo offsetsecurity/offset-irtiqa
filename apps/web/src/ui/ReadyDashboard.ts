@@ -1,4 +1,3 @@
-import { useState } from "preact/hooks";
 import type { VNode } from "preact";
 import { html } from "./html.js";
 import type { ReadinessDashboard, ReadinessWords } from "../persistence/apiClient.js";
@@ -23,11 +22,11 @@ const WORDS: ReadinessWords = {
   keyDate: "external audit", ledBy: "Led by",
 };
 
-export function FlightPath({ d, words = WORDS, label }: { d: ReadinessDashboard; words?: ReadinessWords; label: string }): VNode {
+export function FlightPath({ d, words = WORDS, label, showRing = true }: { d: ReadinessDashboard; words?: ReadinessWords; label: string; showRing?: boolean }): VNode {
   const k = d.keyDate;
   const today = new Date().toISOString().slice(0, 10);
   const R = 31, C = 2 * Math.PI * R;
-  const ring = html`<div class="sd-ring">
+  const ring = !showRing ? null : html`<div class="sd-ring">
     <svg width="76" height="76" viewBox="0 0 76 76" style="transform:rotate(-90deg)" aria-hidden="true">
       <circle cx="38" cy="38" r=${R} fill="none" stroke="#eef2f7" stroke-width="9" />
       <circle cx="38" cy="38" r=${R} fill="none" stroke="#15803d" stroke-width="9" stroke-linecap="round"
@@ -93,28 +92,6 @@ export function FlightPath({ d, words = WORDS, label }: { d: ReadinessDashboard;
   </div>`;
 }
 
-const EYE = html`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>`;
-
-export function LensSwitch({ d, words = WORDS }: { d: ReadinessDashboard; words?: ReadinessWords }): VNode {
-  const [on, setOn] = useState(false);
-  return html`<div>
-    <div class="card sd-lensbar">
-      <div class="sd-seg" role="tablist" aria-label="Whose view">
-        <button type="button" role="tab" aria-selected=${!on} class=${on ? "" : "on"} onClick=${() => setOn(false)}>Your view</button>
-        <button type="button" role="tab" aria-selected=${on} class=${on ? "on aud" : "aud"} onClick=${() => setOn(true)}>${EYE} ${capital(words.auditorShort)}'s view</button>
-      </div>
-      <div class="sd-lens-note"><b>See your controls the way the ${words.auditor} will.</b> Switch to the ${words.auditorShort}'s view to see what they'd accept, question, or raise as a ${words.finding}.</div>
-    </div>
-    ${on
-      ? html`<div class="sd-lcols">
-          <a href="#/controls" style="background:#bbf7d0;color:#14532d"><b>${d.lens.ready}</b>Ready to show<span>in place, with recent evidence</span></a>
-          <a href="#/evidence" style="background:#fef3c7;color:#78350f"><b>${d.lens.questions}</b>Will ask questions<span>evidence old, or never tested</span></a>
-          <a href="#/getready" style="background:#fee2e2;color:#7f1d1d"><b>${d.lens.findings}</b>Would raise a ${words.finding}<span>not in place, failed, or no evidence</span></a>
-        </div>`
-      : null}
-  </div>`;
-}
 
 export function Forecast({ d, words = WORDS }: { d: ReadinessDashboard; words?: ReadinessWords }): VNode {
   const pts = d.trend;
@@ -132,7 +109,7 @@ export function Forecast({ d, words = WORDS }: { d: ReadinessDashboard; words?: 
       ? html`<p class="muted">The forecast needs a few days of history. A snapshot is taken every night, so check back in a week.</p>`
       : html`<svg viewBox=${`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Readiness so far and forecast">
           ${[0, 50, 100].map((v) => html`<line x1=${L} y1=${y(v)} x2=${W - 10} y2=${y(v)} stroke="#eef2f7" />
-            <text x=${L - 8} y=${y(v) + 4} font-size="10" fill="#64748b" text-anchor="end">${v}%</text>`)}
+            <text x=${L - 8} y=${y(v) + 4} font-size="10" fill="#5D687C" text-anchor="end">${v}%</text>`)}
           ${keyDay ? html`<line x1=${x(keyDay)} y1=${T - 8} x2=${x(keyDay)} y2=${B} stroke="#5b4bd6" stroke-dasharray="4 3" />
             <text x=${x(keyDay)} y=${H - 10} font-size="10.5" fill="#3730a3" text-anchor="middle">${capital(words.keyDate)}</text>` : null}
           <polyline points=${line} fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />

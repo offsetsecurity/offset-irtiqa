@@ -73,7 +73,17 @@ async function build() {
       .find((f) => f?.endsWith(".js")) ?? "app.js";
 
   const template = await readFile(resolve(root, "src/core/index.html"), "utf8");
+  // The Offset look (taken from Offset Attest): inlined after the screen styles, so its tokens and components win.
+  const theme = await readFile(resolve(root, "src/core/theme.css"), "utf8");
+  // The page's styles go in their own hashed file, not in a <style> block, so the
+  // Content Security Policy can refuse inline styles (style-src 'self' only).
+  const styleBlock = /<style>([\s\S]*?)<\/style>/.exec(template);
+  if (!styleBlock) throw new Error("index.html has no <style> block to move into its own file");
+  const css = styleBlock[1].replace("/*{{THEME_CSS}}*/", () => theme);
+  const cssName = `app.${createHash("sha256").update(css).digest("hex").slice(0, 8).toUpperCase()}.css`;
+  await writeFile(join(outDir, cssName), css);
   const html = template
+    .replace(styleBlock[0], () => `<link rel="stylesheet" href="/${cssName}">`)
     .replaceAll("{{BUNDLE}}", jsFile)
     .replaceAll("{{PRODUCT_NAME}}", pack.product)
     .replaceAll("{{EDITION}}", pack.edition)

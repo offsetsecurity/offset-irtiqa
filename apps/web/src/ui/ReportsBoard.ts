@@ -57,9 +57,9 @@ function Thumb({ kind }: { kind: "board" | "plan" }): VNode {
     : html`<svg class="rb-thumb" viewBox="0 0 84 112" aria-hidden="true">
         <rect width="84" height="112" rx="3" fill="#fff"/>
         <rect x="10" y="10" width="14" height="4" rx="1" fill="#2457d6"/>
-        <rect x="10" y="20" width="44" height="5" rx="1" fill="#0f172a"/>
-        ${[0, 1, 2, 3, 4, 5].map((i) => html`<circle cx=${14 + i * 11} cy="38" r="3.6" fill=${i < 2 ? "#e7f6ec" : "#fdf3e2"} stroke=${i < 2 ? "#16a34a" : "#d97706"} stroke-width="1.2"/>`)}
-        ${[0, 1, 2, 3, 4, 5, 6].map((i) => html`<rect x="10" y=${52 + i * 7.5} width=${i % 3 === 0 ? 56 : 46} height="3" rx="1" fill="#e2e8f0"/>`)}
+        <rect x="10" y="20" width="44" height="5" rx="1" fill="#0B1220"/>
+        ${[0, 1, 2, 3, 4, 5].map((i) => html`<circle cx=${14 + i * 11} cy="38" r="3.6" fill=${i < 2 ? "#e7f6ec" : "#fdf3e2"} stroke=${i < 2 ? "#14915A" : "#C47A06"} stroke-width="1.2"/>`)}
+        ${[0, 1, 2, 3, 4, 5, 6].map((i) => html`<rect x="10" y=${52 + i * 7.5} width=${i % 3 === 0 ? 56 : 46} height="3" rx="1" fill="#E4E7EE"/>`)}
       </svg>`;
 }
 

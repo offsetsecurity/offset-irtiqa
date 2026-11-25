@@ -17,7 +17,7 @@ next.
 | **The framework** | 136 controls in SAMA's 32 subdomains and 4 domains, numbered as SAMA numbers them |
 | **Maturity scoring** | Each control scored 0 to 5, against a target of 3 that you can raise (banks: 4 for the four subdomains SAMA names) |
 | **Guidance on every control** | What it is for, what level 3 looks like, and what an assessor looks for |
-| **Get ready** | A plan of 7 stages and 24 steps, from setting up to closing gaps. 13 steps tick themselves from your data |
+| **Plan** | A plan of 7 stages and 24 steps, from setting up to closing gaps. 13 steps tick themselves from your data |
 | **Sample library** | 98 assets and 43 risks written for financial services and the Saudi financial sector, to add with one click |
 | **Registers** | Evidence, risks, assets, policies, tasks, incidents and findings, all linked to the controls |
 | **Reports (PDF, with your logo)** | Executive summary, maturity assessment, gap report, readiness plan, risk register, evidence register |

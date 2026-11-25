@@ -24,10 +24,10 @@ const ROLE_BLURB: Record<UserRole, string> = {
 };
 
 const ROLE_TONE: Record<UserRole, string> = {
-  admin: "#b91c1c",
+  admin: "#B42830",
   contributor: "#2457D6",
   auditor: "#7c3aed",
-  readonly: "#475569",
+  readonly: "#566176",
 };
 
 /** A password someone can read out over the phone without ambiguity. */

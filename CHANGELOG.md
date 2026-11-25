@@ -17,6 +17,14 @@ Every release is numbered x.y.z, for example 1.4.2:
 
 ## [Unreleased]
 
+### Changed
+- **The global UI**, the same look as every Offset product: the menu, top bar,
+  account menu, Ctrl K to jump to any screen, the windows and the sign-in page.
+  The first screen is now called **Plan**, with a mock audit at the top that
+  shows what a SAMA assessor would find today. Settings opens on an overview
+  with a tab for each section. An Auditor view walks an assessor through the
+  product step by step.
+
 ### Fixed (0.2.35)
 - **Docker: uploaded evidence files survive updates.** The image never told the
   application where the evidence volume was, so files were kept inside the
