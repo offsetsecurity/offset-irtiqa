@@ -47,6 +47,7 @@ function parseArgs(argv: string[]): Args {
   const install = get("--install-dir");
   const data = get("--data-dir");
   if (!install || !data) {
+    // eslint-disable-next-line no-console -- a command-line tool that talks to a person at a console
     console.error("Usage: windows.js --poll|--apply --install-dir <dir> --data-dir <dir> [--request <file>]");
     process.exit(2);
   }

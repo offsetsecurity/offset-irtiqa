@@ -7,7 +7,7 @@ import {
   evidence, evidenceToInput, controls,
   type Evidence as EvidenceRow, type EvidenceInput, type Freshness, type Control,
 } from "../persistence/apiClient.js";
-import { since, plural, localDay } from "./format.js";
+import { plural, localDay } from "./format.js";
 
 /** The 30-60-90 ladder the API computes. Order matters: worst first. */
 const FRESHNESS: { key: Freshness; label: string; colour: string; note: string }[] = [

@@ -39,6 +39,7 @@ test("Download all gives one zip with every report in it", async ({ page }) => {
   const zip = Buffer.concat(await (await download.createReadStream()).toArray());
   expect(zip.subarray(0, 4).toString("latin1")).toBe("PK\u0003\u0004");
   // One local header per report, each a PDF.
+  // eslint-disable-next-line no-control-regex -- the zip signature holds control characters
   expect((zip.toString("latin1").match(/PK\u0003\u0004/g) ?? []).length).toBe(count);
   expect((zip.toString("latin1").match(/%PDF-/g) ?? []).length).toBe(count);
   await expect(button).toHaveText(/Download all/);

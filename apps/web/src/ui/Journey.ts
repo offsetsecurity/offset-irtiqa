@@ -34,8 +34,6 @@ const AMBER = "#d97706";
 const GREY = "#94a3b8";
 const SLATE = "#cbd5e1";
 
-const stageColour = (s: JourneyStage, suggested: boolean): string =>
-  s.complete ? GREEN : s.done > 0 || suggested ? AMBER : GREY;
 
 /**
  * Breaks a stage name over at most three lines.

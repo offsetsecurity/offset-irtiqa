@@ -146,7 +146,7 @@ export const policyRegister: RegisterSpec<RegisterRow> = {
       header: "Policy" },
     { header: "Status", width: "120px", cell: (r) => badge(r["status"]) },
     { header: "Owner", width: "150px", cell: (r) => plain(r["owner"]) },
-    { ...dueCell("review_date", (r) => false), header: "Next review" },
+    { ...dueCell("review_date", () => false), header: "Next review" },
     // An approved policy nobody has read is the gap this column exposes. It
     // counts the version in force: sign-offs on an older one do not carry over.
     { header: "Read by", width: "90px", align: "right",

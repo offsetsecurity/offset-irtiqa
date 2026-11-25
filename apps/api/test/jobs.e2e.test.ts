@@ -7,7 +7,7 @@ import { migrate } from "../src/db/migrate.js";
 import { seedControls } from "../src/db/seed.js";
 import { pool, query } from "../src/db/pool.js";
 import {
-  enqueue, enqueueUnique, claimNext, complete, fail, releaseStale, nextDailyRun, MAX_ATTEMPTS,
+  enqueue, enqueueUnique, claimNext, fail, releaseStale, nextDailyRun, MAX_ATTEMPTS,
 } from "../src/jobs/queue.js";
 import {
   readinessSnapshot, sessionPurge, jobLogPurge, walCheckpoint, backup, HANDLERS, SCHEDULE,

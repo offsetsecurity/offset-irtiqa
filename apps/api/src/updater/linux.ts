@@ -27,6 +27,7 @@ import {
 
 const product = process.argv[2] ?? "";
 if (!/^[a-z]{2,20}$/.test(product)) {
+  // eslint-disable-next-line no-console -- a command-line tool that talks to a person at a console
   console.error("Usage: linux.js <product>");
   process.exit(2);
 }
