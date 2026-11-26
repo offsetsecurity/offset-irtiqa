@@ -45,7 +45,9 @@ function handshake(version: tls.SecureVersion, to = port): Promise<string> {
     const socket = tls.connect({
       host: "127.0.0.1",
       port: to,
-      rejectUnauthorized: false,
+      // Trust the test certificate itself rather than switch checking off.
+      ca: cert,
+      servername: "localhost",
       minVersion: version,
       maxVersion: version,
       // Old versions need old signatures, which OpenSSL's default level refuses
@@ -66,7 +68,7 @@ describe.skipIf(!hasOpenssl)("HTTPS minimum version", () => {
     dir = mkdtempSync(join(tmpdir(), "offset-tls-min-"));
     execFileSync("openssl", [
       "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "2",
-      "-keyout", join(dir, "key.pem"), "-out", join(dir, "cert.pem"), "-subj", "/CN=localhost",
+      "-keyout", join(dir, "key.pem"), "-out", join(dir, "cert.pem"), "-subj", "/CN=localhost", "-addext", "subjectAltName=DNS:localhost",
     ], { stdio: "ignore" });
     key = readFileSync(join(dir, "key.pem"));
     cert = readFileSync(join(dir, "cert.pem"));
