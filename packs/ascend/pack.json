@@ -16,7 +16,8 @@
     "calendar": true,
     "help": true,
     "boardReport": true,
-    "demoData": true
+    "demoData": true,
+    "readiness": true
   },
   "themeLabel": "Domain",
   "itemLabel": "Control",
@@ -24,5 +25,20 @@
     "domains": 4,
     "subdomains": 32,
     "controls": 136
+  },
+  "readiness": {
+    "auditor": "SAMA assessor",
+    "auditorShort": "assessor",
+    "finding": "finding",
+    "findings": "findings",
+    "keyDate": "SAMA assessment",
+    "ledBy": "Led by",
+    "refs": {
+      "policy": "3.1.3",
+      "finding": "3.2.4.5",
+      "vendor": "3.4.1",
+      "audit": "3.2.5",
+      "risk": "3.2.1"
+    }
   }
 }
