@@ -62,7 +62,7 @@ graph LR
 | 2 | Stealing a session | Random ID, HMAC-signed cookie; HttpOnly, Secure on HTTPS, SameSite=Lax; server-side sessions; 12-hour idle expiry | `auth/session.ts` |
 | 3 | Reading traffic on the network | Refuses to serve a network address without TLS unless deliberately overridden; HSTS in production | `server.ts`, `app.ts` |
 | 4 | Cross-site request forgery | Double-submit token checked in constant time on every write that needs a role, plus SameSite=Lax | `auth/rbac.ts`, `auth/session.ts` |
-| 5 | Cross-site scripting | Preact escapes output; CSP allows only the product's own scripts; no inline scripts | `app.ts` (helmet) |
+| 5 | Cross-site scripting | Preact escapes output; CSP allows only the product's own scripts and stylesheet; no inline scripts and no inline styles | `app.ts` (helmet) |
 | 6 | Clickjacking | `frame-ancestors 'none'` | `app.ts` |
 | 7 | SQL injection | Zod validation of every body and query; user input only as query parameters. Table and column names come from code, never from a request | `routes/*` |
 | 8 | A low role changing data | Role checked on the server for every route; auditors and read-only users rejected on every write | `auth/rbac.ts`, `test/rbac.test.ts` |
@@ -98,11 +98,11 @@ the security overview, the questionnaire or both.
 | G7 | **One signing key** | If it leaks, a malicious update would be accepted by every install whose administrator presses Update | The key lives only in the release workflow's secrets. Rotation is built in: ship a build trusting both keys, then switch |
 | G8 | **No single sign-on** | Accounts are managed separately from the customer's directory, so leavers must be disabled by hand | OIDC or SAML. The `users.auth_source` column is already there |
 | G9 | **Uploads are not scanned** | A user can upload malware that a colleague later downloads and opens | Leave to the customer's endpoint protection, or add an optional ClamAV hook |
-| G10 | **CSP allows inline styles** | Low: inline styles cannot run code | Move the remaining inline styles into the stylesheet |
 | G11 | **No independent penetration test** | Mistakes nobody here thought to look for | Commission one before the first customer goes live |
 
 Closed since this was first written: **G2**, the per-address limit on sign-in
-(threat 1a), and **G3**, the audit trail screen (threat 20). The numbers are
+(threat 1a), **G3**, the audit trail screen (threat 20), and **G10**, inline styles
+allowed by the CSP (threat 5, closed 2026-11-26). The numbers are
 kept so older references still point somewhere.
 
 ## When to revisit this
