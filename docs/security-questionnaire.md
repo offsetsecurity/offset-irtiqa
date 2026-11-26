@@ -47,7 +47,7 @@ Applies to Offset Irtiqa.
 
 | Question | Answer |
 |---|---|
-| Is traffic encrypted? | Yes. HTTPS with the customer's own certificate, TLS 1.2 minimum. The product refuses to serve the network without it unless the customer deliberately turns that off for a proxy |
+| Is traffic encrypted? | Yes. HTTPS with the customer's own certificate, TLS 1.2 minimum, forward-secret authenticated ciphers only. The product refuses to serve the network without it unless the customer deliberately turns that off for a proxy |
 | Is there protection against XSS? | Yes. A strict Content-Security-Policy runs only the product's own scripts, with no inline scripts |
 | Is there protection against CSRF? | Yes. A double-submit token on every change, compared in constant time |
 | Is there protection against clickjacking? | Yes. The page cannot be framed by another site |
