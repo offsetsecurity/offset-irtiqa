@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { personName } from "../lib/schema.js";
 import { query, withTransaction } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
@@ -441,7 +442,7 @@ export async function readinessDashboard(): Promise<ReadinessDashboard> {
 const bulkBody = z
   .object({
     theme: z.string().min(1).max(40),
-    owner: z.string().max(200).optional(),
+    owner: personName(200).optional(),
     outOfScope: z.string().max(2000).optional(),
   })
   .strict();

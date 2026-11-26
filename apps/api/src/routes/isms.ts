@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { personName } from "../lib/schema.js";
 import { registerRoutes } from "./register.js";
 
 /**
@@ -16,6 +17,7 @@ import { registerRoutes } from "./register.js";
  */
 
 const text = (max: number) => z.string().max(max).default("");
+const person = (max: number) => personName(max).default("");
 const date = () => z.string().date().nullish();
 const ids = () => z.array(z.string().uuid()).max(500).default([]);
 /** Where reminders go when the record's date comes. Empty means nobody is chased. */
@@ -43,7 +45,7 @@ export const vendorRoutes = registerRoutes({
       .enum(["Public", "Internal", "Confidential", "Restricted"])
       .default("Internal"),
     status: z.enum(["Prospective", "Active", "Under review", "Exited"]).default("Prospective"),
-    owner: text(200),
+    owner: person(200),
     ownerEmail: email(),
     assurance: text(500),
     assessedDate: date(),
@@ -96,7 +98,7 @@ export const objectiveRoutes = registerRoutes({
     title: z.string().min(1).max(300),
     measure: text(300),
     target: text(200),
-    owner: text(200),
+    owner: person(200),
     ownerEmail: email(),
     dueDate: date(),
     status: z.enum(["Planned", "On track", "At risk", "Met", "Missed"]).default("Planned"),
@@ -126,7 +128,7 @@ export const partyRoutes = registerRoutes({
     kind: text(80).default("Other"),
     needs: text(2000),
     addressed: text(2000),
-    owner: text(200),
+    owner: person(200),
     ownerEmail: email(),
     reviewDate: date(),
     notes: text(10_000),
@@ -155,7 +157,7 @@ export const reviewRoutes = registerRoutes({
     status: z.enum(["Planned", "In progress", "Completed", "Cancelled"]).default("Planned"),
     plannedDate: date(),
     heldDate: date(),
-    ledBy: text(200),
+    ledBy: person(200),
     ownerEmail: email(),
     attendees: text(1000),
     scope: text(2000),
@@ -185,7 +187,7 @@ export const communicationRoutes = registerRoutes({
   shape: {
     topic: z.string().min(1).max(300),
     audience: text(300),
-    owner: text(200),
+    owner: person(200),
     ownerEmail: email(),
     channel: text(200),
     frequency: text(120),

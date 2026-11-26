@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { personName } from "../lib/schema.js";
 import { canRead, isAdmin, requireAuth } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
 import { todayIso } from "../lib/time.js";
@@ -16,7 +17,7 @@ import { REMIND_BEFORE } from "../mail/reminders.js";
 
 const level = z
   .object({
-    name: z.string().trim().max(120).default(""),
+    name: personName(120).default(""),
     // Empty is allowed: a level with no address is simply skipped.
     email: z.union([z.literal(""), z.string().trim().email("That is not an email address.")]).default(""),
     days: z.coerce.number().int("Days overdue must be a whole number.").min(1, "Days overdue starts at 1.").max(365),
