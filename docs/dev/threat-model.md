@@ -4,7 +4,7 @@ What could go wrong with an Offset install, who could make it go wrong, what
 stops them today, and what does not yet. For the people who build and release
 the product. The customer-facing version is [the security overview](../security-overview.md).
 
-Reviewed against the code on 2026-09-21. Update it when a trust boundary,
+Reviewed against the code on 2026-09-21; threats 21 to 23 added, and the second 17 and 18 renamed 17a and 18a, on 2026-11-26. Update it when a trust boundary,
 a role or the update path changes.
 
 ## What we protect
@@ -76,10 +76,13 @@ graph LR
 | 16 | The mail password leaking | AES-256-GCM with a key generated per install; never returned by the API | `lib/secrets.ts`, `routes/settings.ts` |
 | 17 | The server's private key leaking | Only an administrator can upload one. Kept in one file beside the database (mode 600 on Linux and Docker; on Windows, under the same folder permissions as the settings file and its secrets), and never returned by the API, written to the audit trail, or put in a backup. A `.pfx` password is AES-256-GCM encrypted like the mail password | `tls/certificate.ts`, `routes/certificate.ts` |
 | 18 | Swapping in the wrong certificate | The key must belong to the certificate and the certificate must be in date, or it is refused. A different name, self-signed or close to expiry is shown to the administrator before it replaces the one in use. Every upload and removal is in the audit trail | `tls/certificate.ts`, `test/certificate.e2e.test.ts` |
-| 17 | A disabled user carrying on | Disabling, or an administrator setting a password, deletes all of that user's sessions at once | `routes/users.ts` |
-| 18 | Secrets or vulnerable dependencies in the code | CI runs gitleaks and Trivy (vulnerabilities, secrets, misconfiguration), failing on high and critical; runtime dependencies pinned to the tested versions | `.github/workflows/ci.yml`, `deploy/runtime-manifest.mjs` |
+| 17a | A disabled user carrying on | Disabling, or an administrator setting a password, deletes all of that user's sessions at once | `routes/users.ts` |
+| 18a | Secrets or vulnerable dependencies in the code | CI runs gitleaks and Trivy (vulnerabilities, secrets, misconfiguration), failing on high and critical; runtime dependencies pinned to the tested versions | `.github/workflows/ci.yml`, `deploy/runtime-manifest.mjs` |
 | 19 | A process escaping its lane | Linux: own user and systemd sandboxing. Windows: LocalService. Docker: non-root, published on 127.0.0.1 by default | `deploy/*` |
 | 20 | Hiding activity, or the trail leaking | The trail is append-only and has no route that edits or deletes it. It is shown to administrators and auditors only; keys that look like passwords, keys or tokens are hidden; a downloaded cell that starts like a formula is made text; each download is itself recorded | `routes/audit.ts`, `audit/audit.ts` |
+| 21 | A read-only user or auditor learning more from the readiness forecast | The readiness view and its dashboard need only the read-only role, and return nothing that role cannot already read in the registers (titles, references, owner names as typed, vendor and policy names). No email addresses, user ids or password data. Off unless the pack turns readiness on | `routes/readiness.ts`, `test/readiness.e2e.test.ts` |
+| 22 | One request changing a whole theme of controls | The bulk change needs the contributor role and the CSRF token, like a change to one control, and is checked again inside the handler. The body is a strict schema (theme, owner, reason; nothing else). One call changes one theme (41 controls in the largest), in one transaction, and writes one audit line per control with who, when and the address. Taking controls out of scope is refused unless the pack has a Statement of Applicability | `routes/readiness.ts`, `test/readiness.e2e.test.ts` |
+| 23 | The Settings overview giving away server facts | Administrators only. It shows whether each part is on, the version, sizes and backup counts, the mail server's name and sender address, how many users hold each role (not their names) and the last few changes from the audit trail with who made them; never the mail password, the certificate's key or the session and field keys | `routes/settings-overview.ts`, `test/settings-overview.e2e.test.ts` |
 
 ## Known gaps
 
@@ -96,7 +99,7 @@ the security overview, the questionnaire or both.
 | G8 | **No single sign-on** | Accounts are managed separately from the customer's directory, so leavers must be disabled by hand | OIDC or SAML. The `users.auth_source` column is already there |
 | G9 | **Uploads are not scanned** | A user can upload malware that a colleague later downloads and opens | Leave to the customer's endpoint protection, or add an optional ClamAV hook |
 | G10 | **CSP allows inline styles** | Low: inline styles cannot run code | Move the remaining inline styles into the stylesheet |
-| G11 | **No independent penetration test** | Mistakes nobody here thought to look for | Commission one before the first paid customer |
+| G11 | **No independent penetration test** | Mistakes nobody here thought to look for | Commission one before the first customer goes live |
 
 Closed since this was first written: **G2**, the per-address limit on sign-in
 (threat 1a), and **G3**, the audit trail screen (threat 20). The numbers are
