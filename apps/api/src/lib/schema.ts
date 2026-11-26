@@ -31,16 +31,18 @@ const BREAKS = /[\t\n\v\f\r\u0085\u2028\u2029]+/g;
  * space, the direction embeddings and overrides (U+202A to U+202E), the word
  * joiner and invisible operators, the direction isolates (U+2066 to U+2069),
  * the deprecated format characters, the byte-order mark, the interlinear
- * annotation marks, and the tag characters (U+E0000 to U+E007F), which can
- * carry hidden text.
+ * annotation marks, the tag characters (U+E0000 to U+E007F), which can carry
+ * hidden text, the variation selectors (U+FE00 to U+FE0F), and the Hangul
+ * fillers (U+115F, U+1160, U+3164, U+FFA0), which show as nothing and are
+ * used to make a name look empty or like another. Real Hangul is not touched.
  *
  * Kept on purpose: the left-to-right, right-to-left and Arabic letter marks
  * (U+200E, U+200F, U+061C), which Arabic users add so a mixed name such as
  * one with "(CISO)" shows the right way round, and the zero-width non-joiner
  * and joiner (U+200C, U+200D), which Persian and the Indian scripts need.
  */
-// eslint-disable-next-line no-control-regex -- finding control characters is the point
-const HIDDEN = /[\u0000-\u001F\u007F-\u009F\u00AD\u180E\u200B\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF\uFFF9-\uFFFB\u{E0000}-\u{E007F}]/gu;
+// eslint-disable-next-line no-control-regex, no-misleading-character-class -- finding control characters and lone variation selectors is the point
+const HIDDEN = /[\u0000-\u001F\u007F-\u009F\u00AD\u115F-\u1160\u180E\u200B\u202A-\u202E\u2060-\u2064\u2066-\u206F\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF9-\uFFFB\u{E0000}-\u{E007F}]/gu;
 
 /** One line of visible text: breaks become a space, hidden characters go, ends trimmed. */
 export function cleanName(text: string): string {

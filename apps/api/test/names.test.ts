@@ -42,6 +42,24 @@ describe("personName", () => {
     }
   });
 
+  it("takes out the variation selectors and the Hangul fillers, which show as nothing", () => {
+    for (const [bad, good] of [
+      ["Al\uFE00ex", "Alex"], ["Alex\uFE0F", "Alex"],
+      ["\u3164", ""], ["Alex \u3164", "Alex"], ["\uFFA0Alex", "Alex"],
+      ["Al\u115Fex", "Alex"], ["Al\u1160ex", "Alex"],
+    ]) {
+      expect(parse(bad!), JSON.stringify(bad)).toBe(good);
+    }
+    // A user name made only of Hangul fillers is refused: nothing is left of it.
+    expect(personName(200, 1).safeParse("\u3164\u3164").success).toBe(false);
+    // A Japanese name with an ideographic variant marker (U+E0100 and up) is kept.
+    expect(parse("\u8FBB\u{E0100}\u592A\u90CE")).toBe("\u8FBB\u{E0100}\u592A\u90CE");
+    // An emoji keeps its picture; only the selector that asks for colour goes.
+    expect(parse("Alex \u2764\uFE0F")).toBe("Alex \u2764");
+    // Real Hangul is kept.
+    expect(parse("\uAE40\uC9C0\uC218")).toBe("\uAE40\uC9C0\uC218");
+  });
+
   it("still limits the length, and a required name must have something left", () => {
     expect(name.safeParse("a".repeat(200)).success).toBe(true);
     expect(name.safeParse("a".repeat(201)).success).toBe(false);
