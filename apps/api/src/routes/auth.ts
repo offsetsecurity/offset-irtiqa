@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { personName } from "../lib/schema.js";
 import { randomBytes, randomUUID } from "node:crypto";
 import { query } from "../db/pool.js";
 import { nowIso } from "../lib/time.js";
@@ -138,7 +139,7 @@ async function sendTemporaryPassword(identifier: string, ip: string, log: Logger
 
 const bootstrapBody = z.object({
   username: z.string().min(3).max(100).regex(/^[a-zA-Z0-9._-]+$/),
-  name: z.string().min(1).max(200),
+  name: personName(200, 1),
   email: z.string().email(),
   password: z.string(),
 });

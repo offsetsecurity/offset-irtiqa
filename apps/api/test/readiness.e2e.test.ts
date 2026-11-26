@@ -198,6 +198,35 @@ maybe("readiness", () => {
     expect(reason.statusCode).toBe(400);
   });
 
+  it("stores an owner as one line with no hidden characters, in bulk, on one control, a policy and a user", async () => {
+    const c = await first();
+    for (const [owner, stored] of [["Head\nof IT", "Head of IT"], ["Head of IT\u0000", "Head of IT"], ["\u202EHead of IT", "Head of IT"], ["Head\u200B of IT", "Head of IT"]]) {
+      const bulk = await app.inject({ method: "POST", url: "/api/v1/controls/bulk", headers: write(), payload: { theme: c.theme, owner } });
+      expect(bulk.statusCode, JSON.stringify(owner)).toBe(200);
+      const one = await app.inject({ method: "PATCH", url: `/api/v1/controls/${c.id}`, headers: write(), payload: { owner } });
+      expect(one.statusCode, JSON.stringify(owner)).toBe(200);
+      const back = await query<{ owner: string }>("select owner from controls where id = $1", [c.id]);
+      expect(back.rows[0]!.owner, JSON.stringify(owner)).toBe(stored);
+    }
+    const { rows } = await query<{ owner: string }>("select owner from controls");
+    expect(rows.filter((r) => ["\n", "\u0000", "\u202E", "\u200B"].some((ch) => r.owner.includes(ch)))).toEqual([]);
+
+    // A record saved before the rule, sent back whole by the screen, still saves.
+    await query("update controls set owner = $1 where id = $2", ["Old\nowner\u202E", c.id]);
+    const resave = await app.inject({ method: "PATCH", url: `/api/v1/controls/${c.id}`, headers: write(), payload: { owner: "Old\nowner\u202E", notes: "dated" } });
+    expect(resave.statusCode).toBe(200);
+    expect((await query<{ owner: string }>("select owner from controls where id = $1", [c.id])).rows[0]!.owner).toBe("Old owner");
+
+    const policy = await app.inject({ method: "POST", url: "/api/v1/policies", headers: write(), payload: { name: "Access policy", owner: "Lee\u2066 Chen", approver: "A\nB" } });
+    expect(policy.statusCode).toBe(201);
+    const p = policy.json() as { owner?: string; approver?: string; policy?: { owner: string; approver: string } };
+    expect(p.policy?.owner ?? p.owner).toBe("Lee Chen");
+    expect(p.policy?.approver ?? p.approver).toBe("A B");
+
+    const user = await app.inject({ method: "POST", url: "/api/v1/users", headers: write(), payload: { username: "rtl-test", name: "\u202E\u200B", email: "rtl@example.test", role: "readonly", password: "rtl-test-passphrase-2026" } });
+    expect(user.statusCode).toBe(400);
+  });
+
   it("refuses a bulk change without the CSRF token", async () => {
     const c = await first();
     const res = await app.inject({ method: "POST", url: "/api/v1/controls/bulk", headers: read(), payload: { theme: c.theme, owner: "Nobody" } });

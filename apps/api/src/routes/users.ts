@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
+import { personName } from "../lib/schema.js";
 import { query, withTransaction } from "../db/pool.js";
 import { isAdmin, requireAuth } from "../auth/rbac.js";
 import { ROLES } from "../auth/session.js";
@@ -37,7 +38,7 @@ const createBody = z
       .min(3)
       .max(100)
       .regex(/^[a-zA-Z0-9._-]+$/, "Letters, numbers, dot, dash and underscore only."),
-    name: z.string().min(1).max(200),
+    name: personName(200, 1),
     email: z.string().email(),
     role: z.enum(ROLES),
     /**
@@ -52,7 +53,7 @@ const createBody = z
 
 const patchBody = z
   .object({
-    name: z.string().min(1).max(200).optional(),
+    name: personName(200, 1).optional(),
     email: z.string().email().optional(),
     role: z.enum(ROLES).optional(),
     disabled: z.boolean().optional(),

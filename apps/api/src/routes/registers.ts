@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { personName } from "../lib/schema.js";
 import { registerRoutes } from "./register.js";
 import { query } from "../db/pool.js";
 import { canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
@@ -14,6 +15,7 @@ import { todayIso } from "../lib/time.js";
  */
 
 const text = (max: number) => z.string().max(max).default("");
+const person = (max: number) => personName(max).default("");
 const date = () => z.string().date().nullish();
 const ids = () => z.array(z.string().uuid()).max(500).default([]);
 
@@ -47,7 +49,7 @@ export const assetRoutes = registerRoutes({
     classification: z
       .enum(["Public", "Internal", "Confidential", "Restricted"])
       .default("Internal"),
-    owner: text(200),
+    owner: person(200),
     location: text(200),
     notes: text(10_000),
     controlIds: ids(),
@@ -69,11 +71,11 @@ export const policyRoutes = registerRoutes({
   shape: {
     name: z.string().min(1).max(300),
     version: text(40).default("1.0"),
-    owner: text(200),
+    owner: person(200),
     ownerEmail: z.union([z.literal(""), z.string().email("That is not an email address.")]).default(""),
     status: z.enum(["Draft", "In Review", "Approved"]).default("Draft"),
     reviewDate: date(),
-    approver: text(200),
+    approver: person(200),
     approvalDate: date(),
     notes: text(10_000),
     changeNote: text(500),
@@ -232,7 +234,7 @@ export const taskRoutes = registerRoutes({
   orderBy: "t.status = 'Done', t.due_date is null, t.due_date, t.seq",
   shape: {
     title: z.string().min(1).max(300),
-    owner: text(200),
+    owner: person(200),
     // Chased only when it also has a date. Empty is the normal state and is
     // never an error: most tasks belong to whoever is in the room.
     ownerEmail: z.union([z.literal(""), z.string().email("That is not an email address.")]).default(""),
@@ -266,7 +268,7 @@ export const incidentRoutes = registerRoutes({
   shape: {
     title: z.string().min(1).max(300),
     detectedDate: date(),
-    owner: text(200),
+    owner: person(200),
     severity: z.enum(["Low", "Medium", "High", "Critical"]).default("Medium"),
     status: z
       .enum(["Open", "Investigating", "Contained", "Resolved", "Closed"])
@@ -298,7 +300,7 @@ export const findingRoutes = registerRoutes({
     source: text(200),
     description: text(10_000),
     clause: text(120),
-    owner: text(200),
+    owner: person(200),
     dueDate: date(),
     // Corrective action, on the finding rather than in a register of its own:
     // an action without the finding that caused it is an orphan, and two lists
@@ -306,7 +308,7 @@ export const findingRoutes = registerRoutes({
     rootCause: text(2000),
     actionTaken: text(2000),
     verification: text(2000),
-    verifiedBy: text(200),
+    verifiedBy: person(200),
     verifiedDate: date(),
     controlIds: ids(),
   },

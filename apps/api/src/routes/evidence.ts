@@ -5,7 +5,7 @@ import {
 } from "../lib/files.js";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { patchOf } from "../lib/schema.js";
+import { patchOf, personName } from "../lib/schema.js";
 import { query, withTransaction } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
@@ -18,7 +18,7 @@ const idParam = z.object({ id: z.string().uuid() });
 const evidenceBody = z.object({
   name: z.string().min(1).max(300),
   type: z.string().max(60).default("Document"),
-  owner: z.string().max(200).default(""),
+  owner: personName(200).default(""),
   // Chased only when there is also a review date. Empty is normal.
   ownerEmail: z.union([z.literal(""), z.string().email("That is not an email address.")]).default(""),
   collectedDate: z.string().date().nullish(),

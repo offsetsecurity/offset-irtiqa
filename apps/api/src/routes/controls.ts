@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { personName } from "../lib/schema.js";
 import { query, withTransaction } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
@@ -46,7 +47,7 @@ const patchBody = z
     targetMaturity: maturityValue.optional(),
     dueDate: dueDate.optional(),
     ownerEmail: ownerEmail.optional(),
-    owner: z.string().max(200).optional(),
+    owner: personName(200).optional(),
     notes: z.string().max(10_000).optional(),
     mapped: z.string().max(500).optional(),
     justification: z.string().max(10_000).optional(),
@@ -71,7 +72,7 @@ interface TestRow {
 const testBody = z
   .object({
     testedOn: z.string().date(),
-    tester: z.string().max(200).default(""),
+    tester: personName(200).default(""),
     result: z.enum(["Pass", "Fail", "Partial"]),
     note: z.string().max(4000).default(""),
   })

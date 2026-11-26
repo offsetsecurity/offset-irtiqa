@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { patchOf } from "../lib/schema.js";
+import { patchOf, personName } from "../lib/schema.js";
 import { query, withTransaction } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
@@ -23,9 +23,9 @@ const riskBody = z.object({
   resImpact: score.nullish(),
   treatment: z.enum(TREATMENTS).default("Mitigate"),
   status: z.enum(STATUSES).default("Open"),
-  owner: z.string().max(200).default(""),
+  owner: personName(200).default(""),
   reviewDate: z.string().date().nullish(),
-  acceptedBy: z.string().max(200).nullish(),
+  acceptedBy: personName(200).nullish(),
   acceptedDate: z.string().date().nullish(),
   controlIds: z.array(z.string().uuid()).max(500).default([]),
 });

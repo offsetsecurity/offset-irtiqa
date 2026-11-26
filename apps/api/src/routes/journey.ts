@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { personName } from "../lib/schema.js";
 import { query } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
@@ -20,7 +21,7 @@ const putBody = z
     state: z.enum(["done", "not_applicable", "outstanding"]),
     reason: z.string().max(2_000).default(""),
     /** Who is doing it, and where to chase them. Both optional, and useless apart. */
-    owner: z.string().max(200).optional(),
+    owner: personName(200).optional(),
     ownerEmail: z.union([z.literal(""), z.string().email("That is not an email address.")]).optional(),
     dueDate: z
       .string()
