@@ -7,7 +7,7 @@ import { hashPassword, needsRehash, validatePasswordStrength, verifyPassword } f
 import {
   afterPasswordChange, createSession, destroySession, type SessionUser, type UserRole,
 } from "../auth/session.js";
-import { requireAuth, isAdmin, canRead } from "../auth/rbac.js";
+import { requireAuth, canRead } from "../auth/rbac.js";
 import { audit, auditAnonymous } from "../audit/audit.js";
 import { noteSignIn } from "../lib/signin-log.js";
 import { badRequest, HttpError } from "../lib/errors.js";

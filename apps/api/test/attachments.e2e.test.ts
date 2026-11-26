@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import type { FastifyInstance } from "fastify";
-import { readdirSync, existsSync, mkdtempSync, rmSync } from "node:fs";
+import { readdirSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
 import { createHash } from "node:crypto";
 import { buildApp } from "../src/app.js";
 import { migrate } from "../src/db/migrate.js";

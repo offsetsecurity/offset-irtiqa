@@ -15,6 +15,7 @@ import { fileSink, type LogSink } from "./logging.js";
  */
 let sink: LogSink | null = null;
 
+// eslint-disable-next-line no-control-regex -- the control characters are what this strips or finds
 const clean = (s: string): string => s.replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, 120);
 
 export function noteSignIn(event: "FAILED" | "LOCKED" | "BLOCKED", username: string, address: string, reason: string): void {

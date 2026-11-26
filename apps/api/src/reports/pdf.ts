@@ -272,6 +272,7 @@ export function safe(value: unknown): string {
     // Anything still outside Latin-1 becomes a visible marker, never a wrong
     // glyph and never a dropped character: a report that quietly loses text is
     // worse than one that admits it.
+    // eslint-disable-next-line no-control-regex -- keeps tab, newline and carriage return, drops the other control characters
     .replace(/[^\x09\x0A\x0D\x20-\xFF]/g, "?");
 }
 

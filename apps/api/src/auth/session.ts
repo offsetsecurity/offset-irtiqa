@@ -1,7 +1,7 @@
 import { randomBytes, createHmac, timingSafeEqual } from "node:crypto";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { query } from "../db/pool.js";
-import { config, isProd } from "../config.js";
+import { config } from "../config.js";
 import { isoInHours, isoAgo, nowIso } from "../lib/time.js";
 
 export const SESSION_COOKIE = "offset_sid";

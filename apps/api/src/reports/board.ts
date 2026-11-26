@@ -443,7 +443,6 @@ async function boardDocument(generatedBy: string, meta: Meta, tight: number): Pr
   const monthly = new Map<string, number>();
   for (const t of trend) monthly.set(t.day.slice(0, 7), t.pct);
   monthly.set(d.slice(0, 7), f.headline);
-  const headSeries = [...monthly.values()].slice(-6);
   const prevHeadline = prev?.headline ?? null;
 
   // The verdict.

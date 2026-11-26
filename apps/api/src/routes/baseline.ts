@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { query, withTransaction } from "../db/pool.js";
+import { withTransaction } from "../db/pool.js";
 import { canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
 import { badRequest } from "../lib/errors.js";
