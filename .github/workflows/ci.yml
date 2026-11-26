@@ -119,6 +119,15 @@ jobs:
             sleep 2
           done
           echo "container never became healthy"; docker logs app; exit 1
+      - name: The image carries no package manager or download tools
+        run: |
+          docker run --rm --entrypoint sh offset-${{ matrix.product }}:ci -c '
+            found=0
+            for t in apk wget nc curl npm npx yarn corepack; do
+              if command -v "$t" >/dev/null 2>&1; then echo "still in the image: $t"; found=1; fi
+            done
+            test -s /lib/apk/db/installed || { echo "package list missing: scanners would be blind"; found=1; }
+            exit $found'
 
   security:
     name: Security scans
