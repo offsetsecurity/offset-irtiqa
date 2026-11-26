@@ -80,7 +80,8 @@ against it.
   refuses to start on a network address without a certificate, so passwords
   never cross the network readable.
   The only way round that is a setting you turn on yourself, for when a proxy
-  in front of it handles HTTPS. TLS 1.2 is the minimum.
+  in front of it handles HTTPS. TLS 1.2 is the minimum, with forward-secret,
+  authenticated ciphers only.
 - **Strict Content-Security-Policy:** the page runs only scripts served by the
   product itself. No inline scripts, and nothing is loaded from the internet.
   The page cannot be framed by another site.

@@ -6,10 +6,11 @@ import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import tls from "node:tls";
-import { applyLive, dualServerFactory, MIN_TLS_VERSION } from "../src/tls/server.js";
+import { applyLive, dualServerFactory, MIN_TLS_VERSION, TLS_CIPHERS } from "../src/tls/server.js";
 
 /**
- * The lowest TLS version is the product's own decision, not Node.js's.
+ * The lowest TLS version, and the ciphers, are the product's own decision,
+ * not Node.js's.
  *
  * Node.js refuses TLS 1.0 and 1.1 by default today, but a `--tls-min-v1.0`
  * flag, NODE_OPTIONS, or a future default would lower it for every server that
@@ -40,7 +41,7 @@ let control: Server;
 let port: number;
 let controlPort: number;
 
-function handshake(version: tls.SecureVersion, to = port): Promise<string> {
+function handshake(version: tls.SecureVersion, to = port, ciphers = "DEFAULT@SECLEVEL=0"): Promise<string> {
   return new Promise((resolve) => {
     const socket = tls.connect({
       host: "127.0.0.1",
@@ -52,7 +53,7 @@ function handshake(version: tls.SecureVersion, to = port): Promise<string> {
       maxVersion: version,
       // Old versions need old signatures, which OpenSSL's default level refuses
       // on both sides. Allowed here so only the version setting can say no.
-      ciphers: "DEFAULT@SECLEVEL=0",
+      ciphers,
     });
     socket.once("secureConnect", () => {
       const got = socket.getProtocol() ?? "unknown";
@@ -63,7 +64,7 @@ function handshake(version: tls.SecureVersion, to = port): Promise<string> {
   });
 }
 
-describe.skipIf(!hasOpenssl)("HTTPS minimum version", () => {
+describe.skipIf(!hasOpenssl)("HTTPS minimum version and ciphers", () => {
   beforeAll(async () => {
     dir = mkdtempSync(join(tmpdir(), "offset-tls-min-"));
     execFileSync("openssl", [
@@ -110,5 +111,34 @@ describe.skipIf(!hasOpenssl)("HTTPS minimum version", () => {
     expect(applyLive({ key, cert })).toBe(true);
     expect(await handshake("TLSv1.1")).toBe("refused");
     expect(await handshake("TLSv1.2")).toBe("TLSv1.2");
+  });
+
+  // A TLS 1.2 cipher with no forward secrecy and no authenticated encryption:
+  // old, but Node.js offers it as soon as its own list is lowered.
+  const WEAK = "AES128-SHA";
+  const STRONG = "ECDHE-RSA-AES128-GCM-SHA256";
+
+  it("allows only forward-secret, authenticated ciphers on TLS 1.2", () => {
+    const tls12 = TLS_CIPHERS.split(":").filter((c) => !c.startsWith("TLS_"));
+    expect(tls12.length).toBeGreaterThan(0);
+    for (const c of tls12) {
+      expect(c, c).toMatch(/^ECDHE-/);
+      expect(c, c).toMatch(/GCM|CHACHA20-POLY1305/);
+    }
+  });
+
+  it("refuses a weak TLS 1.2 cipher even when Node.js's own cipher list is lowered", async (ctx) => {
+    if ((await handshake("TLSv1.2", controlPort, WEAK)) !== "TLSv1.2") ctx.skip("this machine cannot offer the weak cipher at all");
+    expect(await handshake("TLSv1.2", port, WEAK)).toBe("refused");
+    expect(await handshake("TLSv1.2", port, STRONG)).toBe("TLSv1.2");
+    expect(await handshake("TLSv1.3")).toBe("TLSv1.3");
+  });
+
+  it("still refuses the weak cipher after a new certificate is put on the running server", async (ctx) => {
+    if ((await handshake("TLSv1.2", controlPort, WEAK)) !== "TLSv1.2") ctx.skip("this machine cannot offer the weak cipher at all");
+    expect(applyLive({ key, cert })).toBe(true);
+    expect(await handshake("TLSv1.2", port, WEAK)).toBe("refused");
+    expect(await handshake("TLSv1.2", port, STRONG)).toBe("TLSv1.2");
+    expect(await handshake("TLSv1.3")).toBe("TLSv1.3");
   });
 });

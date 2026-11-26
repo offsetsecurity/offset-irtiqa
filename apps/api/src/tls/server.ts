@@ -28,6 +28,30 @@ const TLS_HANDSHAKE = 0x16;
  */
 export const MIN_TLS_VERSION = "TLSv1.2" as const;
 
+/**
+ * The ciphers the server accepts, also set here so `--tls-cipher-list` or a
+ * lowered default cannot add weak ones. TLS 1.3: its three standard suites.
+ * TLS 1.2: only key exchanges with forward secrecy (ECDHE) and authenticated
+ * encryption (AES-GCM, ChaCha20-Poly1305), as in Mozilla's "intermediate"
+ * profile without the slow DHE ones. Every browser of the last ten years
+ * speaks these. As in that profile, the client chooses among them, so a phone
+ * without AES hardware can pick ChaCha20; every choice on the list is strong.
+ */
+export const TLS_CIPHERS = [
+  "TLS_AES_128_GCM_SHA256",
+  "TLS_AES_256_GCM_SHA384",
+  "TLS_CHACHA20_POLY1305_SHA256",
+  "ECDHE-ECDSA-AES128-GCM-SHA256",
+  "ECDHE-RSA-AES128-GCM-SHA256",
+  "ECDHE-ECDSA-AES256-GCM-SHA384",
+  "ECDHE-RSA-AES256-GCM-SHA384",
+  "ECDHE-ECDSA-CHACHA20-POLY1305",
+  "ECDHE-RSA-CHACHA20-POLY1305",
+].join(":");
+
+/** What every secure context of this server is given. */
+const TLS_RULES = { minVersion: MIN_TLS_VERSION, ciphers: TLS_CIPHERS } as const;
+
 /** The server this process is serving HTTPS on, if it is. */
 let live: HttpsServer | null = null;
 
@@ -42,7 +66,7 @@ export function servingHttps(): boolean {
  */
 export function applyLive(options: TlsOptions): boolean {
   if (!live) return false;
-  live.setSecureContext({ ...options, minVersion: MIN_TLS_VERSION });
+  live.setSecureContext({ ...options, ...TLS_RULES });
   return true;
 }
 
@@ -68,7 +92,7 @@ function redirect(req: IncomingMessage, res: ServerResponse): void {
  */
 export function dualServerFactory(options: TlsOptions) {
   return (handler: (req: IncomingMessage, res: ServerResponse) => void): HttpsServer => {
-    const secure = createHttpsServer({ ...options, minVersion: MIN_TLS_VERSION }, handler);
+    const secure = createHttpsServer({ ...options, ...TLS_RULES }, handler);
     const plain = createHttpServer(redirect);
 
     // The TLS server's own listener turns a socket into a TLS connection.
