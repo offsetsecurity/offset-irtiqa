@@ -8,7 +8,7 @@ do tomorrow.
 Your administrator gives you a username, a password and the address. The first
 person ever to open a new install creates the administrator account.
 
-## Look at Get ready
+## Look at the Plan
 
 Seven stages, 24 steps, from setting the product up to closing your gaps. Each
 step says what to do, why it matters, and has a button to the screen where you

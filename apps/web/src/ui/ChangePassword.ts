@@ -2,7 +2,7 @@ import { useState } from "preact/hooks";
 import type { VNode } from "preact";
 import { html } from "./html.js";
 import { auth, type SessionUser } from "../persistence/apiClient.js";
-import { Brand } from "./Brand.js";
+import { AuthFrame, PasswordMeter } from "./Login.js";
 import { Field, Modal } from "./Modal.js";
 
 /**
@@ -29,6 +29,7 @@ export function ChooseNewPassword({ user, onDone, onSignOut }: {
 }): VNode {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [pw, setPw] = useState("");
 
   async function submit(e: Event): Promise<void> {
     e.preventDefault();
@@ -53,42 +54,30 @@ export function ChooseNewPassword({ user, onDone, onSignOut }: {
   }
 
   return html`
-    <div class="center">
-      <form class="login card" onSubmit=${submit}>
-        <${Brand} />
-        <div class="pad">
-          <p style="margin:0 0 6px"><b>Choose a new password</b></p>
-          <p class="muted" style="margin:0 0 16px">
-            You signed in as <b>${user.username}</b> with a temporary password. It has now
-            been used up, so choose the password you will use from now on.
-          </p>
-          ${error ? html`<div class="err" role="alert">${error}</div>` : null}
-
-          <label class="fld">
-            <span>New password</span>
-            <input name="newPassword" type="password" autocomplete="new-password"
-                   required minLength=${MIN_LENGTH} autofocus />
-          </label>
-          <label class="fld">
-            <span>New password again</span>
-            <input name="again" type="password" autocomplete="new-password" required />
-          </label>
-          <p class="muted" style="font-size:11.5px;margin:-6px 0 14px">
-            At least ${MIN_LENGTH} characters. A memorable phrase beats a short, complicated word.
-          </p>
-
-          <button class="btn primary" style="width:100%" disabled=${busy}>
-            ${busy ? "Saving…" : "Save and continue"}
-          </button>
-          <button type="button" class="btn" style="width:100%;margin-top:8px" onClick=${onSignOut}>
-            Sign out
-          </button>
-        </div>
+    <${AuthFrame} title="Choose a new password"
+      lede=${html`You signed in as <b>${user.username}</b> with a temporary password. It has now been used up, so choose the password you will use from now on.`}>
+      <form class="auth-fields" onSubmit=${submit}>
+        ${error ? html`<div class="err" role="alert">${error}</div>` : null}
+        <label class="fld">
+          <span>New password</span>
+          <input name="newPassword" type="password" autocomplete="new-password"
+                 required minLength=${MIN_LENGTH} autofocus onInput=${(e: Event) => setPw((e.target as HTMLInputElement).value)} />
+        </label>
+        <${PasswordMeter} value=${pw} min=${MIN_LENGTH} />
+        <label class="fld">
+          <span>New password again</span>
+          <input name="again" type="password" autocomplete="new-password" required />
+        </label>
+        <button class="btn primary auth-go" disabled=${busy}>
+          ${busy ? "Saving…" : "Save and continue"}
+        </button>
+        <button type="button" class="btn ghost auth-go" onClick=${onSignOut}>
+          Sign out
+        </button>
       </form>
-    </div>`;
+    <//>`;
 }
 
-/** The dialog from the top bar, for anyone who knows their current password. */
 export function ChangePasswordDialog({ onClose }: { onClose: () => void }): VNode {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");

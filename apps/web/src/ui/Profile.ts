@@ -181,14 +181,14 @@ export function Profile({ canEdit, itemLabel }: {
       <div class="card pad">
         <div class="section-title"><h2>Target profile progress</h2></div>
         <div class="stack-bar">
-          ${segment(implemented, "#16a34a", "At target")}
-          ${segment(inProgress, "#d97706", "In progress")}
-          ${segment(notStarted, "#cbd5e1", "Not started")}
+          ${segment(implemented, "#14915A", "At target")}
+          ${segment(inProgress, "#C47A06", "In progress")}
+          ${segment(notStarted, "#D3D8E1", "Not started")}
         </div>
         <div class="legend" style="flex-direction:row;gap:18px;margin-top:10px">
-          <div><span class="dot" style="background:#16a34a"></span>${implemented} at target</div>
-          <div><span class="dot" style="background:#d97706"></span>${inProgress} in progress</div>
-          <div><span class="dot" style="background:#cbd5e1"></span>${notStarted} not started</div>
+          <div><span class="dot" style="background:#14915A"></span>${implemented} at target</div>
+          <div><span class="dot" style="background:#C47A06"></span>${inProgress} in progress</div>
+          <div><span class="dot" style="background:#D3D8E1"></span>${notStarted} not started</div>
         </div>
 
         <div class="section-title" style="margin:22px 0 12px"><h2>Profile written up</h2></div>
@@ -210,14 +210,14 @@ export function Profile({ canEdit, itemLabel }: {
           <span class="muted" style="font-size:12px">${gaps.length} open</span>
         </div>
         <div class="pri-grid">
-          ${[["High", "#dc2626"], ["Medium", "#d97706"], ["Low", "#475569"]].map(
+          ${[["High", "#D2333D"], ["Medium", "#C47A06"], ["Low", "#566176"]].map(
             ([name, colour]) => html`
               <div class="pri-tile" style=${`--tile:${colour}`}>
                 <div class="pri-n">${byPriority(name!)}</div>
                 <div class="pri-l">${name}</div>
               </div>`,
           )}
-          <div class="pri-tile" style="--tile:#94a3b8">
+          <div class="pri-tile" style="--tile:#97A0B1">
             <div class="pri-n">${unranked}</div>
             <div class="pri-l">Unranked</div>
           </div>

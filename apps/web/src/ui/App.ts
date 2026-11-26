@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import { html } from "./html.js";
+import { WalkBar } from "./AuditorWalk.js";
 
 import {
   auth, health, pack, controls as controlsApi, risks as risksApi,
   type Pack, type SessionUser,
 } from "../persistence/apiClient.js";
 import { Brand, ProductMark } from "./Brand.js";
-import { Icon } from "./icons.js";
+import { Icon, type IconName } from "./icons.js";
 import { Login } from "./Login.js";
 import { ChangePasswordDialog, ChooseNewPassword } from "./ChangePassword.js";
+import { CommandPalette, type PaletteItem } from "./CommandPalette.js";
 import { Dashboard } from "./Dashboard.js";
+import { AuditorView } from "./AuditorView.js";
 import { Controls } from "./Controls.js";
 import { Evidence } from "./Evidence.js";
 import { Risks } from "./Risks.js";
@@ -57,7 +60,7 @@ const ROUTES = [
   "getready", "thread", "dashboard", "isms", "profile", "soa", "system", "controls", "evidence",
   "risks", "assets", "policies", "tasks", "incidents", "findings", "reports",
   "gaps", "vendors", "training", "objectives", "parties", "reviews", "communications",
-  "escalation", "calendar",
+  "escalation", "calendar", "auditor",
   "help", "guides",
   "people", "audit", "backups", "settings",
 ] as const;
@@ -83,22 +86,31 @@ interface NavSection {
  * (PINNED, below), always in view.
  */
 const NAV_SECTIONS: readonly NavSection[] = [
-  { id: "start", title: "Start", routes: ["getready", "dashboard", "calendar"] },
-  {
-    id: "compliance", title: "Compliance",
-    routes: ["isms", "profile", "soa", "system", "controls", "evidence", "policies"],
-  },
-  { id: "risk", title: "Risk and assets", routes: ["risks", "assets"] },
-  { id: "work", title: "Work", routes: ["tasks", "incidents", "findings"] },
-  {
-    id: "management", title: "Management system",
-    routes: ["vendors", "training", "objectives", "parties", "reviews", "communications"],
-  },
-  { id: "reports", title: "Reports", routes: ["reports", "gaps"] },
+  // The plan and the overview: where every session starts. No heading, always open.
+  { id: "start", title: "", routes: ["getready", "dashboard"] },
+  // The programme the certificate is made of, in the order it is built.
+  { id: "compliance", title: "Programme", routes: ["isms", "profile", "soa", "system", "controls", "policies", "evidence"] },
+  { id: "risk", title: "Risk", routes: ["risks", "assets", "thread", "vendors"] },
+  // The work of running the programme week to week.
+  { id: "work", title: "Operations", routes: ["tasks", "calendar", "incidents"] },
+  // Facing the auditor.
+  { id: "reports", title: "Audit", routes: ["auditor", "reviews", "findings", "gaps", "reports"] },
+  { id: "management", title: "Governance", routes: ["training", "objectives", "parties", "communications"] },
   { id: "admin", title: "Administration", routes: ["people", "escalation", "audit", "backups"] },
 ];
 
-/** Which sections are open. Only "Start" is, until somebody opens another. */
+/**
+ * Icons-only, each section is one button: its own icon, a panel of its screens
+ * on click. Folding sections behind tiny chevrons in a 60-pixel strip hid the
+ * page you were on and left rows of lines with nothing under them.
+ */
+const SECTION_ICON: Record<string, IconName> = {
+  compliance: "controls", risk: "risks", work: "tasks", reports: "reports", management: "objectives", admin: "people",
+};
+
+/** Which sections are open by default: Start, and the work people use every week. */
+const OPEN_BY_DEFAULT = new Set(["start", "compliance"]);
+
 const SECTIONS_KEY = "offset.nav.sections";
 function readSections(): Record<string, boolean> {
   try {
@@ -116,6 +128,9 @@ function readSections(): Record<string, boolean> {
  * and drops out of the list for everybody else like any other entry.
  */
 const PINNED: readonly Route[] = ["settings", "guides", "help"];
+
+/** The palette shortcut as this keyboard writes it. */
+const KEY_HINT = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "\u2318K" : "Ctrl K";
 
 /** The first letters of up to two names, for the round marker beside the signed-in person. */
 function initials(name: string): string {
@@ -137,7 +152,8 @@ function readCollapsed(): boolean {
  * full width it would leave no room for the page, and hiding it altogether,
  * as it once did, left a phone with no way to move between screens.
  */
-const NARROW = "(max-width: 820px)";
+// Below 1100 px the menu is icons (1280 and 1366 laptops keep the full menu).
+const NARROW = "(max-width: 1099px)";
 function useNarrow(): boolean {
   const [narrow, setNarrow] = useState(() => window.matchMedia(NARROW).matches);
   useEffect(() => {
@@ -152,16 +168,15 @@ function useNarrow(): boolean {
 const routeFromHash = (): Route => {
   // Only the first part names the screen: "#/policies/templates" is Policies, on its Templates tab.
   const key = window.location.hash.replace(/^#\/?/, "").split("/")[0] ?? "";
-  // The Golden thread is a tab of Risks; "#/thread" from an old bookmark still finds it.
-  if (key === "thread") return "risks";
+  // The Golden thread was once a tab of Risks; "#/risks/thread" from an old link still finds it.
+  if (/^#\/?risks\/thread\b/.test(window.location.hash)) return "thread";
   return (ROUTES as readonly string[]).includes(key) ? (key as Route) : "dashboard";
 };
 
-type SubTab = "register" | "samples" | "thread";
+type SubTab = "register" | "samples";
 
-/** The Risks tab the address asks for: "#/risks/thread" or "#/thread" is the Golden thread. */
-const subTabFromHash = (): SubTab =>
-  /^#\/?(thread|risks\/thread)\b/.test(window.location.hash) ? "thread" : "register";
+/** A register always opens on its entries. */
+const subTabFromHash = (): SubTab => "register";
 
 const REGISTERS = {
   assets: assetRegister,
@@ -188,14 +203,11 @@ export function App(): VNode {
    * navigation would say otherwise.
    */
   const [subTab, setSubTab] = useState<SubTab>(subTabFromHash);
-  // A tab also puts itself in the address. Otherwise the address stays "#/risks"
-  // on the Golden thread tab, and a link back to "#/risks" changes nothing.
-  const pickTab = (tab: SubTab): void => {
-    setSubTab(tab);
-    history.replaceState(null, "", tab === "thread" ? "#/risks/thread" : `#/${route}`);
-  };
+  const pickTab = (tab: SubTab): void => setSubTab(tab);
   /** Documents, or the templates that ship with the pack. */
   const [policyTab, setPolicyTab] = useState<"documents" | "templates">("documents");
+  // Bumped when the auditor walk-through is ended, so its bar goes at once.
+  const [, setWalkEnded] = useState(0);
   const [addedCount, setAddedCount] = useState(0);
   const [needsBootstrap, setNeedsBootstrap] = useState(false);
   const [meta, setMeta] = useState<{ pack: Pack; themes: Record<string, string> } | null>(null);
@@ -203,12 +215,35 @@ export function App(): VNode {
   const [ready, setReady] = useState(false);
   const [linkOptions, setLinkOptions] = useState<Record<string, LinkOption[]>>({});
   const [changingPassword, setChangingPassword] = useState(false);
+  /** The jump-to palette (Ctrl K) and the account menu in the top bar. */
+  const [palette, setPalette] = useState(false);
+  const [acctOpen, setAcctOpen] = useState(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setPalette((v) => !v); }
+      if (e.key === "Escape") setAcctOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  useEffect(() => {
+    if (!acctOpen) return undefined;
+    const close = (e: MouseEvent): void => { if (!(e.target as HTMLElement).closest(".acct")) setAcctOpen(false); };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [acctOpen]);
+  useEffect(() => setAcctOpen(false), [route]);
+  const [flyout, setFlyout] = useState<{ id: string; top: number; left: number } | null>(null);
+  useEffect(() => setFlyout(null), [route]);
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const [sections, setSections] = useState<Record<string, boolean>>(readSections);
-  const sectionOpen = (id: string): boolean => sections[id] ?? id === "start";
+  const sectionOpen = (id: string): boolean => sections[id] ?? OPEN_BY_DEFAULT.has(id);
+  /** The section opened last: the menu keeps it open when it folds the others. */
+  const lastOpened = useRef<string | null>(null);
   const toggleSection = (id: string): void =>
     setSections((cur) => {
-      const next = { ...cur, [id]: !(cur[id] ?? id === "start") };
+      const next = { ...cur, [id]: !(cur[id] ?? OPEN_BY_DEFAULT.has(id)) };
+      if (next[id]) lastOpened.current = id;
       try { localStorage.setItem(SECTIONS_KEY, JSON.stringify(next)); } catch { /* a private window */ }
       return next;
     });
@@ -217,7 +252,7 @@ export function App(): VNode {
   // Each register opens on its entries, not on whichever tab the last one was left
   // on - unless the address names a tab, as a link to the Golden thread does.
   useEffect(() => setSubTab(subTabFromHash()), [route]);
-  // A link straight to the templates, such as the one on a Get ready step.
+  // A link straight to the templates, such as the one on a Plan step.
   useEffect(() => {
     const open = (): void => {
       if (/^#\/?policies\/templates/.test(window.location.hash)) setPolicyTab("templates");
@@ -265,6 +300,39 @@ export function App(): VNode {
       window.removeEventListener("resize", check);
     };
   }, [ready, user, meta, collapsed]);
+
+  /**
+   * The menu never scrolls inside itself. When the open sections would not
+   * fit, the others fold, keeping the section of the page you are on and the
+   * one you opened last. Folding here is not saved: on a taller window the
+   * sections you chose open again.
+   */
+  const [fitTick, setFitTick] = useState(0);
+  useEffect(() => {
+    const onResize = (): void => setFitTick((n) => n + 1);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  useEffect(() => {
+    const el = navRef.current;
+    if (iconsOnly) return;
+    if (!el || el.scrollHeight <= el.clientHeight + 1) return;
+    const keep = new Set<string>();
+    el.querySelectorAll<HTMLElement>(".nav-section[data-current='1']").forEach((s) => keep.add(s.dataset["id"] ?? ""));
+    if (lastOpened.current) keep.add(lastOpened.current);
+    const open = [...el.querySelectorAll<HTMLElement>(".nav-section:not(.closed)")].map((s) => s.dataset["id"] ?? "").filter(Boolean);
+    // The first section has no heading to open it again with, so it never folds.
+    let fold = open.filter((id) => !keep.has(id) && id !== "start");
+    // Still too tall with two open: keep only the one just opened. The page you
+    // are on is still named in the top bar.
+    if (!fold.length && lastOpened.current && open.length > 1) fold = open.filter((id) => id !== lastOpened.current && id !== "start");
+    if (!fold.length) return;
+    setSections((cur) => {
+      const next = { ...cur };
+      for (const id of fold) next[id] = false;
+      return next;
+    });
+  }, [sections, route, collapsed, fitTick, ready, user]);
 
   // Restore the session, if there is one, before deciding what to draw.
   useEffect(() => {
@@ -400,7 +468,7 @@ export function App(): VNode {
   });
 
   const TITLE: Record<Route, { h1: string; sub: string }> = {
-    getready: { h1: "Get ready", sub: "What to do, in what order, and how far you have got" },
+    getready: { h1: "Plan", sub: "What to do, in what order, and how far you have got" },
     thread: { h1: "Golden thread", sub: `Every risk, the ${plural(itemLabel).toLowerCase()} that treat it, and the evidence behind them` },
     dashboard: {
       h1: "Dashboard",
@@ -420,6 +488,7 @@ export function App(): VNode {
     tasks: { h1: "Tasks", sub: "The work outstanding, and who is doing it" },
     incidents: { h1: "Incidents", sub: "What happened, how bad, and where it stands" },
     findings: { h1: "Findings", sub: "Raised against you, and what closed them" },
+    auditor: { h1: "Auditor view", sub: "One page to walk your certification auditor through, in the order an ISO/IEC 27001 audit reads" },
     reports: { h1: "Reports", sub: "Download a PDF of where things stand" },
     vendors: { h1: "Suppliers", sub: "Who you rely on, what they hold, and what they showed you" },
     training: { h1: "Training", sub: "Who was trained, on what, and when it is due again" },
@@ -439,7 +508,7 @@ export function App(): VNode {
   };
 
   const NAV_LABEL: Record<Route, string> = {
-    getready: "Get ready",
+    getready: "Plan",
     thread: "Golden thread",
     dashboard: "Dashboard",
     isms: "ISMS",
@@ -454,6 +523,7 @@ export function App(): VNode {
     tasks: "Tasks",
     incidents: "Incidents",
     findings: "Findings",
+    auditor: "Auditor view",
     reports: "Reports",
     vendors: "Suppliers",
     training: "Training",
@@ -472,6 +542,21 @@ export function App(): VNode {
     settings: "Settings",
   };
 
+  const navSections = NAV_SECTIONS.map((sec) => ({ ...sec, items: sec.routes.filter((r) => visible.includes(r) && !PINNED.includes(r)) }))
+    .filter((sec) => sec.items.length > 0);
+  /** The section a screen sits in, named above its title. */
+  const sectionOf = (r: Route): string => NAV_SECTIONS.find((sec) => (sec.routes as readonly string[]).includes(r))?.title ?? "";
+  const signOut = async (): Promise<void> => { await auth.logout().catch(() => {}); setUser(null); };
+  const go = (r: Route): void => { window.location.hash = `#/${r}`; };
+  const paletteItems: PaletteItem[] = [
+    ...NAV_SECTIONS.flatMap((sec) => sec.routes.filter((r) => visible.includes(r) && !PINNED.includes(r))
+      .map((r) => ({ id: r, label: NAV_LABEL[r], group: sec.title || "Start", icon: r as IconName, hint: TITLE[r].sub, run: () => go(r) }))),
+    ...PINNED.filter((r) => visible.includes(r))
+      .map((r) => ({ id: r, label: NAV_LABEL[r], group: "Help and settings", icon: r as IconName, hint: TITLE[r].sub, run: () => go(r) })),
+    { id: "act-password", label: "Change password", group: "Account", icon: "key" as IconName, run: () => setChangingPassword(true) },
+    { id: "act-signout", label: "Sign out", group: "Account", icon: "logout" as IconName, run: () => { void signOut(); } },
+  ];
+
   return html`
     <div class=${`app${iconsOnly ? " nav-collapsed" : ""}`}>
       <aside class="sidebar">
@@ -485,39 +570,56 @@ export function App(): VNode {
             <${Icon} name=${collapsed ? "expand" : "collapse"} />
           </button>
         </div>
-        <nav ref=${navRef} class=${`nav scroll${moreBelow ? " more" : ""}`}>
-          ${NAV_SECTIONS.map((s) => ({ ...s, items: s.routes.filter((r) => visible.includes(r) && !PINNED.includes(r)) }))
-            .filter((s) => s.items.length > 0)
-            .map((s) => html`
-              <div class=${`nav-section${sectionOpen(s.id) ? "" : " closed"}`} key=${s.id}>
-                <button type="button" class="nav-section-head" aria-expanded=${sectionOpen(s.id)}
+        <button type="button" class="jump" onClick=${() => setPalette(true)} title=${`Jump to a screen (${KEY_HINT})`} aria-label="Jump to a screen">
+          <${Icon} name="search" /><span>Jump to…</span><kbd>${KEY_HINT}</kbd>
+        </button>
+        ${iconsOnly
+          ? html`<nav ref=${navRef} class="nav scroll rail" aria-label="Screens">
+              ${navSections.map((s) => !s.title
+                ? s.items.map((r) => html`
+                    <a href=${`#/${r}`} key=${r} class=${r === route ? "active" : ""} aria-current=${r === route ? "page" : undefined}
+                       title=${NAV_LABEL[r]}><${Icon} name=${r} /><span class="label">${NAV_LABEL[r]}</span></a>`)
+                : html`<button type="button" key=${s.id}
+                      class=${`rail-btn${s.items.includes(route) ? " current" : ""}${flyout?.id === s.id ? " open" : ""}`}
+                      aria-haspopup="menu" aria-expanded=${flyout?.id === s.id} aria-label=${s.title} title=${s.title}
+                      onClick=${(e: MouseEvent) => {
+                        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                        setFlyout((f) => (f?.id === s.id ? null : { id: s.id, top: r.top, left: r.right + 10 }));
+                      }}>
+                    <${Icon} name=${SECTION_ICON[s.id] ?? s.items[0]!} />
+                  </button>`)}
+            </nav>`
+          : html`<nav ref=${navRef} class=${`nav scroll${moreBelow ? " more" : ""}`} aria-label="Screens">
+          ${navSections.map((s) => html`
+              <div class=${`nav-section${!s.title || sectionOpen(s.id) ? "" : " closed"}`} key=${s.id}
+                   data-id=${s.id} data-current=${s.items.includes(route) ? "1" : "0"}>
+                ${s.title
+                  ? html`<button type="button" class="nav-section-head" aria-expanded=${sectionOpen(s.id)}
+                        aria-label=${s.title}
                         onClick=${() => toggleSection(s.id)}>
-                  <span>${s.title}</span>
-                  <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
-                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-                </button>
+                      <span>${s.title}</span>
+                      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>`
+                  : null}
                 <div class="nav-items">
                   ${s.items.map((r) => html`
-                    <a href=${`#/${r}`} class=${r === route ? "active" : ""}
+                    <a href=${`#/${r}`} class=${r === route ? "active" : ""} aria-current=${r === route ? "page" : undefined}
                        title=${iconsOnly ? NAV_LABEL[r] : undefined}>
                       <${Icon} name=${r} /><span class="label">${NAV_LABEL[r]}</span>
                     </a>`)}
                 </div>
               </div>`)}
-        </nav>
-        ${PINNED.some((r) => visible.includes(r))
-          ? html`<nav class="nav pinned">
-              ${PINNED.filter((r) => visible.includes(r)).map((r) => html`
-                <a href=${`#/${r}`} class=${r === route ? "active" : ""}
+        </nav>`}
+        ${PINNED.some((r) => r !== "help" && visible.includes(r))
+          ? html`<nav class="nav pinned" aria-label="Settings and documentation">
+              ${PINNED.filter((r) => r !== "help" && visible.includes(r)).map((r) => html`
+                <a href=${`#/${r}`} class=${r === route ? "active" : ""} aria-current=${r === route ? "page" : undefined}
                    title=${iconsOnly ? NAV_LABEL[r] : undefined}>
                   <${Icon} name=${r} /><span class="label">${NAV_LABEL[r]}</span>
                 </a>`)}
             </nav>`
           : null}
-        <div class="sidebar-user" title=${`${user.name} (${user.role})`}>
-          <span class="avatar" aria-hidden="true">${initials(user.name)}</span>
-          <span class="who-text"><b>${user.name}</b><em>${user.role}</em></span>
-        </div>
         <div class="sidebar-foot muted">
           ${meta.pack.contact
             ? html`<div class="credit">Developed by Offset Security</div>
@@ -529,29 +631,67 @@ export function App(): VNode {
 
       <div class="main">
         <header class="topbar">
-          <div>
+          <div class="topbar-title">
+            ${sectionOf(route) ? html`<div class="crumb">${sectionOf(route)}</div>` : null}
             <h1>${TITLE[route].h1}</h1>
-            <div class="sub">${TITLE[route].sub}</div>
+            <div class="sub" title=${TITLE[route].sub}>${TITLE[route].sub}</div>
           </div>
           <div class="who">
-            <div>
-              <div class="who-name">${user.name}</div>
-              <div class="who-role muted">${user.role}</div>
+            ${visible.includes("help")
+              ? html`<a class="icon-btn help" href="#/help" title="Help" aria-label="Help"><${Icon} name="help" /></a>`
+              : null}
+            <div class="acct">
+              <button type="button" class="acct-btn" aria-haspopup="menu" aria-expanded=${acctOpen}
+                      aria-label=${`Account: ${user.name}`} onClick=${() => setAcctOpen((v) => !v)}>
+                <span class="avatar" aria-hidden="true">${initials(user.name)}</span>
+                <span class="who-text">
+                  <div class="who-name">${user.name}</div>
+                  <div class="who-role">${user.role}</div>
+                </span>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+              </button>
+              ${acctOpen
+                ? html`<div class="menu" role="menu">
+                    <div class="menu-head"><b>${user.name}</b><span>${user.username} · <span style="text-transform:capitalize;display:inline">${user.role}</span></span></div>
+                    <button type="button" role="menuitem" onClick=${() => { setAcctOpen(false); setChangingPassword(true); }}>
+                      <${Icon} name="key" />Change password
+                    </button>
+                    <button type="button" role="menuitem" onClick=${() => { setAcctOpen(false); setPalette(true); }}>
+                      <${Icon} name="search" />Jump to a screen<kbd style="margin-left:auto">${KEY_HINT}</kbd>
+                    </button>
+                    <div class="sep"></div>
+                    <button type="button" role="menuitem" onClick=${() => { void signOut(); }}>
+                      <${Icon} name="logout" />Sign out
+                    </button>
+                  </div>`
+                : null}
             </div>
-            <button class="btn" onClick=${() => setChangingPassword(true)}>
-              Change password
-            </button>
-            <button class="btn" onClick=${async () => { await auth.logout().catch(() => {}); setUser(null); }}>
-              Sign out
-            </button>
           </div>
         </header>
 
         ${changingPassword
           ? html`<${ChangePasswordDialog} onClose=${() => setChangingPassword(false)} />`
           : null}
+        ${palette ? html`<${CommandPalette} items=${paletteItems} onClose=${() => setPalette(false)} />` : null}
+        ${flyout && iconsOnly
+          ? (() => {
+              const sec = navSections.find((x) => x.id === flyout.id);
+              if (!sec) return null;
+              const top = Math.max(8, Math.min(flyout.top - 8, window.innerHeight - (sec.items.length * 36 + 60)));
+              return html`<div class="nav-flyout" role="menu" aria-label=${sec.title} style=${`top:${top}px;left:${flyout.left}px`}>
+                <div class="nav-flyout-h">${sec.title}</div>
+                ${sec.items.map((r) => html`
+                  <a role="menuitem" key=${r} href=${`#/${r}`} class=${r === route ? "active" : ""}
+                     aria-current=${r === route ? "page" : undefined} onClick=${() => setFlyout(null)}>
+                    <${Icon} name=${r} /><span>${NAV_LABEL[r]}</span>
+                  </a>`)}
+              </div>`;
+            })()
+          : null}
 
-        <main class="content">
+        <main class="content" key=${route}>
+          ${route !== "auditor" ? html`<${WalkBar} onEnd=${() => setWalkEnded((n) => n + 1)} />` : null}
           ${!visible.includes(route)
             ? html`<div class="card pad muted">
                 This screen is not part of ${meta.pack.product}.
@@ -576,6 +716,9 @@ export function App(): VNode {
                              scored=${Boolean(features["maturity"])} />`
             : route === "people"
             ? html`<${Users} me=${user} />`
+            : route === "auditor"
+            ? html`<${AuditorView} framework=${meta.pack.framework} isAuditor=${user.role === "auditor"}
+                     canSeeTrail=${user.role === "admin" || user.role === "auditor"} />`
             : route === "gaps"
             ? html`<${Gaps} themes=${meta.themes} itemLabel=${itemLabel}
                      canEdit=${canEdit} pack=${meta.pack} />`
@@ -596,7 +739,7 @@ export function App(): VNode {
             ? html`<${Settings} me=${user} features=${features} />`
             : route === "dashboard"
             ? html`<${Dashboard} themes=${meta.themes} themeLabel=${themeLabel}
-                                 itemLabel=${itemLabel} pack=${meta.pack} />`
+                                 itemLabel=${itemLabel} pack=${meta.pack} name=${user.name} />`
             : route === "controls"
             ? html`<${Controls} themes=${meta.themes} themeLabel=${themeLabel}
                                 itemLabel=${itemLabel} canEdit=${canEdit} pack=${meta.pack} />`
@@ -618,18 +761,8 @@ export function App(): VNode {
                   <button type="button"
                     class=${subTab === "samples" ? "sel" : ""}
                     onClick=${() => pickTab("samples")}>Sample library</button>
-                  ${route === "risks" && visible.includes("thread")
-                    // The thread follows each risk to the controls that treat it and the
-                    // evidence behind them, so it lives with the risks.
-                    ? html`<button type="button"
-                        class=${subTab === "thread" ? "sel" : ""}
-                        onClick=${() => pickTab("thread")}>Golden thread</button>`
-                    : null}
                 </div>
-                ${subTab === "thread" && route === "risks"
-                  ? html`<${GoldenThread} itemLabel=${itemLabel} canEdit=${canEdit} clauses=${Boolean(features["isoClauses"])}
-                 reasons=${Boolean(features["statementOfApplicability"])} />`
-                  : subTab === "samples"
+                ${subTab === "samples"
                   ? html`<${SampleLibrary} kind=${route} canEdit=${canEdit} controls=${linkOptions["controls"] ?? []}
                            onAdded=${() => setAddedCount((n) => n + 1)} />`
                   : route === "risks"

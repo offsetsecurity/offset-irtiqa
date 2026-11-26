@@ -59,7 +59,7 @@ export interface ClauseState {
 export interface CheckStyle { iso: boolean; reasons: boolean }
 const ISO_STYLE: CheckStyle = { iso: true, reasons: true };
 
-/** What is wrong with each part of the thread, and the totals. Shared with Get ready. */
+/** What is wrong with each part of the thread, and the totals. Shared with Plan. */
 export function analyse(d: ThreadData, withClauses = false, style: CheckStyle = ISO_STYLE) {
   const evOf = new Map<string, ThreadEvidence[]>();
   for (const e of d.evidence) for (const c of e.controls) evOf.set(c, [...(evOf.get(c) ?? []), e]);
@@ -191,7 +191,8 @@ export function GoldenThread({ itemLabel, canEdit, clauses = false, reasons = cl
   const [data, setData] = useState<ThreadData | null>(null);
   const [themes, setThemes] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
-  const [onlyProblems, setOnlyProblems] = useState<boolean | null>(null);
+  // Opens on Only problems: what needs fixing first; Everything is one click away (owner, 9 Nov).
+  const [onlyProblems, setOnlyProblems] = useState<boolean | null>(true);
   const [query, setQuery] = useState("");
   const [sel, setSel] = useState<Sel>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -348,7 +349,7 @@ export function GoldenThread({ itemLabel, canEdit, clauses = false, reasons = cl
           `<rect class="gt-chip-box" x="${X.k + k * 56}" y="${ry[i]! + (RH - 22) / 2}" width="52" height="22" rx="6"/>` +
           `<text x="${X.k + k * 56 + 26}" y="${ry[i]! + 20}" text-anchor="middle">${esc(st.clause)}</text></g>`).join("");
       }
-      const note = states.length ? "" : p ? `<text class="gt-sm" x="${X.r + WD.r - 10}" y="${ry[i]! + 20}" text-anchor="end" style="fill:var(--red)">nothing treats it</text>`
+      const note = states.length ? "" : p ? `<text class="gt-sm gt-red" x="${X.r + WD.r - 10}" y="${ry[i]! + 20}" text-anchor="end">nothing treats it</text>`
         : r.treatment === "Accept" || r.status === "Accepted" ? `<text class="gt-sm" x="${X.r + WD.r - 10}" y="${ry[i]! + 20}" text-anchor="end">accepted</text>` : "";
       const riskOk = !p && states.length > 0 && states.every((s) => s.level === "ok");
       nodes += `<g class="gt-n${p ? " bad" : riskOk ? " ok" : ""}" data-k="${r.id}" data-type="r" data-id="${r.id}" tabindex="0" role="button" aria-label="Risk ${r.seq}: ${esc(r.title)}">` +
@@ -371,8 +372,8 @@ export function GoldenThread({ itemLabel, canEdit, clauses = false, reasons = cl
       const right = c.status !== "implemented"
         ? `<text class="gt-sm" x="${X.c + WD.c - 10}" y="${yy + 17}" text-anchor="end">${STATUS_WORD[c.status] ?? ""}</text>`
         : p?.kind === "noproof"
-          ? `<text class="gt-sm" x="${X.c + WD.c - 10}" y="${yy + 17}" text-anchor="end" style="fill:var(--red)">no evidence</text>`
-          : `<text class="gt-sm gt-own" x="${X.c + WD.c - 10}" y="${yy + 17}" text-anchor="end"${c.owner.trim() ? "" : ' style="fill:var(--amber)"'}>${esc(ownerText)}</text>`;
+          ? `<text class="gt-sm gt-red" x="${X.c + WD.c - 10}" y="${yy + 17}" text-anchor="end">no evidence</text>`
+          : `<text class="gt-sm gt-own${c.owner.trim() ? "" : " gt-amber"}" x="${X.c + WD.c - 10}" y="${yy + 17}" text-anchor="end">${esc(ownerText)}</text>`;
       nodes += `<g class="gt-n${cls}" data-k="${c.id} ${rk.join(" ")} ${evidence.map((e) => e.id).join(" ")}" data-type="c" data-id="${c.id}" tabindex="0" role="button" aria-label="${esc(c.ref)} ${esc(c.title)}">` +
         `<title>${esc(c.ref)} ${esc(c.title)}</title><rect class="gt-box" x="${X.c}" y="${yy}" width="${WD.c}" height="${CH}" rx="7"/>` +
         `<text class="gt-ref" x="${X.c + 10}" y="${yy + 17}">${esc(c.ref)}</text><text x="${X.c + refOff}" y="${yy + 17}">${esc(cut(c.title, fit(WD.c, refOff + rightW)))}</text>${right}</g>`;
@@ -384,7 +385,7 @@ export function GoldenThread({ itemLabel, canEdit, clauses = false, reasons = cl
       nodes += `<g class="gt-n${old ? " warn" : " ok"}" data-k="${e.id} ${ctl.join(" ")} ${rk.join(" ")}" data-type="e" data-id="${e.id}" tabindex="0" role="button" aria-label="${esc(e.name)}">` +
         `<title>${esc(e.name)}</title><rect class="gt-box" x="${X.e}" y="${ey[i]}" width="${WD.e}" height="${RH}" rx="9"/>` +
         `<text x="${X.e + 12}" y="${ey[i]! + 20}">${esc(cut(e.name, fit(WD.e, 112)))}</text>` +
-        `<text class="gt-sm" x="${X.e + WD.e - 10}" y="${ey[i]! + 20}" text-anchor="end" style="fill:${old ? "var(--amber)" : "var(--green)"}">${e.ageDays === null ? "no date" : `${e.ageDays} days old`}</text></g>`;
+        `<text class="gt-sm ${old ? "gt-amber" : "gt-green"}" x="${X.e + WD.e - 10}" y="${ey[i]! + 20}" text-anchor="end">${e.ageDays === null ? "no date" : `${e.ageDays} days old`}</text></g>`;
     });
     if (!cs.length && !rs.length) {
       nodes += `<text class="gt-empty" x="${W / 2}" y="80" text-anchor="middle">${onlyProblems && !q ? "No problems. Every thread is whole." : "Nothing matches."}</text>`;
@@ -710,7 +711,7 @@ export function GoldenThread({ itemLabel, canEdit, clauses = false, reasons = cl
   </div>`;
 }
 
-/** The golden thread in one line, for the Get ready screen. */
+/** The golden thread in one line, for the Plan screen. */
 export function ThreadSummary({ itemLabel }: { itemLabel: string }): VNode | null {
   const [s, setS] = useState<ReturnType<typeof analyse> | null>(null);
   useEffect(() => {

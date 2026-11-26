@@ -177,7 +177,7 @@ export function ControlEvidence({
 
       ${canEdit
         ? html`<div class="ev-actions">
-            <label class="btn small primary ev-file">
+            <label class="btn small primary ev-up">
               Upload a file
               <input type="file" disabled=${busy}
                 onChange=${(e: Event) => {

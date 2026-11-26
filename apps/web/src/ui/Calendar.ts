@@ -96,17 +96,17 @@ export function Calendar(): VNode {
     <div class="card pad">
       <div class="toolbar">
         <div class="grid cards" style="grid-template-columns:repeat(3,1fr);gap:10px;flex:1">
-          <div class="card pad stat" style="border-left:3px solid #dc2626;box-shadow:none">
+          <div class="card pad stat" style="border-left:3px solid #D2333D;box-shadow:none">
             <div class="lbl">Overdue</div>
             <div class="val">${data.counts.overdue}</div>
             <div class="delta">past their date</div>
           </div>
-          <div class="card pad stat" style="border-left:3px solid #d97706;box-shadow:none">
+          <div class="card pad stat" style="border-left:3px solid #C47A06;box-shadow:none">
             <div class="lbl">Next 30 days</div>
             <div class="val">${data.counts.soon}</div>
             <div class="delta">coming up</div>
           </div>
-          <div class="card pad stat" style="border-left:3px solid #1e3a8a;box-shadow:none">
+          <div class="card pad stat" style="border-left:3px solid #183A8F;box-shadow:none">
             <div class="lbl">After that</div>
             <div class="val">${data.counts.later}</div>
             <div class="delta">to ${day(data.horizon)}</div>

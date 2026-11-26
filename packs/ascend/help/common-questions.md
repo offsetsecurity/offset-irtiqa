@@ -1,7 +1,7 @@
 # Common questions
 
 **Do I have to do the stages in order?**
-No. Get ready suggests an order most organisations find easiest. Do anything you
+No. Plan suggests an order most organisations find easiest. Do anything you
 can already do.
 
 **A step will not tick.**
@@ -32,7 +32,7 @@ The product flags anything older than 90 days. Set a collected date on
 everything.
 
 **We are a small team. Is this overkill?**
-Use Get ready and the sample libraries, and mark what genuinely does not apply.
+Use Plan and the sample libraries, and mark what genuinely does not apply.
 The framework scales; the paperwork should too.
 
 **Does this make us compliant with SAMA?**

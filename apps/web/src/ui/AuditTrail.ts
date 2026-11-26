@@ -24,7 +24,7 @@ const RECORD: Record<string, string> = {
   demo: "Example data",
   update: "Update",
   report: "Report",
-  journey_task: "Get ready step",
+  journey_task: "Plan step",
   audit: "Audit trail",
 };
 

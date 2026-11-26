@@ -46,9 +46,9 @@ out.
 
 Every score you give later is a score for what is inside that box.
 
-## 6. Open Get ready
+## 6. Open Plan
 
-**Get ready** is the plan: seven stages, 24 steps, from setting the product up
+**Plan** is the plan: seven stages, 24 steps, from setting the product up
 to closing your gaps. It tells you what to do, why it matters, and takes you to
 the screen where you do it. Steps the product can check itself go green on
 their own.

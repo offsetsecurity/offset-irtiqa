@@ -14,7 +14,8 @@ import {
   type Readiness,
 } from "../persistence/apiClient.js";
 import { ThreadSummary } from "./GoldenThread.js";
-import { ReadyStrip, ProgressPanel, InlineAction, INLINE, AuditorToday, FixFirst, QuickWins, BulkActions } from "./Ready.js";
+import { takePickedStep } from "./pickedStep.js";
+import { ProgressPanel, UpNext, InlineAction, AuditorToday, QuickWins } from "./Ready.js";
 
 /**
  * The readiness plan: what to do, in what order, and how far along they are.
@@ -29,13 +30,11 @@ import { ReadyStrip, ProgressPanel, InlineAction, INLINE, AuditorToday, FixFirst
  * finishing an assessment is software they stop opening.
  */
 
-const GREEN = "#16a34a";
-const AMBER = "#d97706";
-const GREY = "#94a3b8";
-const SLATE = "#cbd5e1";
+const GREEN = "#14915A";
+const AMBER = "#C47A06";
+const GREY = "#97A0B1";
+const SLATE = "#D3D8E1";
 
-const stageColour = (s: JourneyStage, suggested: boolean): string =>
-  s.complete ? GREEN : s.done > 0 || suggested ? AMBER : GREY;
 
 /**
  * Breaks a stage name over at most three lines.
@@ -122,7 +121,7 @@ function stageFlow(
           ${isSelected
             ? html`<circle cx=${cx(i)} cy=${cy} r=${R + 7} fill="none" stroke="#2457D6" stroke-width="2" opacity="0.35" />`
             : null}
-          <circle cx=${cx(i)} cy=${cy} r=${R} fill=${s.complete ? GREEN : "#fff"} stroke="#e6eaf2" stroke-width="5" />
+          <circle cx=${cx(i)} cy=${cy} r=${R} fill=${s.complete ? GREEN : "#fff"} stroke="#E4E7EE" stroke-width="5" />
           ${!s.complete && frac > 0
             ? html`<circle cx=${cx(i)} cy=${cy} r=${R} fill="none" stroke=${colour} stroke-width="5"
                      stroke-linecap="round" stroke-dasharray=${`${C * frac} ${C}`}
@@ -132,14 +131,14 @@ function stageFlow(
             ? html`<path d=${`M ${cx(i) - 7} ${cy} l 5 6 l 10 -12`} fill="none"
                      stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />`
             : html`<text x=${cx(i)} y=${cy + 5} text-anchor="middle" font-size="14" font-weight="700"
-                     fill=${frac > 0 ? AMBER : "#64748b"}>${i + 1}</text>`}
+                     fill=${frac > 0 ? AMBER : "#5D687C"}>${i + 1}</text>`}
           ${labels[i]!.map(
             (line, row) => html`<text x=${cx(i)} y=${top + row * 16} text-anchor="middle"
                   font-size="13.5" font-weight=${isSelected ? "700" : "600"}
                   fill=${isSelected ? "#2457D6" : "#0B1220"}>${line}</text>`,
           )}
           <text x=${cx(i)} y=${countY} text-anchor="middle" font-size="12"
-                fill=${isNext && !s.complete ? "#2457D6" : "#64748b"}
+                fill=${isNext && !s.complete ? "#2457D6" : "#5D687C"}
                 font-weight=${isNext && !s.complete ? "700" : "400"}>
             ${s.applicable === 0 ? "nothing to do" : s.complete ? "done" : `${s.done} of ${s.applicable}${isNext ? " · next" : ""}`}
           </text>
@@ -350,12 +349,12 @@ function writeSnoozed(ids: Set<string>): void {
 }
 
 /**
- * Get ready, the readiness way: one move at a time, done in the card where it
+ * Plan, the readiness way: one move at a time, done in the card where it
  * can be, with the progress, what an auditor would find today, and the fixes
  * that clear the most, all on one screen. The charts live on the Dashboard.
  * The design came from Offset Attest; the pack's `readiness` feature turns it on.
  */
-function ReadyJourney({ canEdit, itemLabel, themes, allowOut }: {
+function ReadyJourney({ canEdit, themes }: {
   canEdit: boolean;
   itemLabel: string;
   themes: Record<string, string>;
@@ -365,7 +364,7 @@ function ReadyJourney({ canEdit, itemLabel, themes, allowOut }: {
   const [ready, setReady] = useState<Readiness | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [picked, setPicked] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string | null>(() => takePickedStep());
   const [snoozed, setSnoozed] = useState<Set<string>>(readSnoozed);
   const [said, setSaid] = useState("");
   const [tpls, setTpls] = useState<Record<string, PackTemplate>>({});
@@ -424,52 +423,47 @@ function ReadyJourney({ canEdit, itemLabel, themes, allowOut }: {
     setSaid(`"${current.title}" moved to tomorrow`);
   };
 
-  return html`<>
+  // plan-fit: the page is scaled a little, as Settings is, so "Run a mock audit" is in view without scrolling.
+  return html`<div class="plan-fit">
     ${error ? html`<div class="card pad error-box" style="margin-bottom:14px">${error}</div>` : null}
-    <${ReadyStrip} plan=${plan} ready=${ready} />
-    <${ProgressPanel} plan=${plan} current=${current} snoozed=${snoozed}
+    <${ProgressPanel} plan=${plan} ready=${ready} current=${current} snoozed=${snoozed}
+      next=${suggested ? { title: suggested.title, n: all.indexOf(suggested) + 1, putOff: snoozed.size,
+        onGo: away ? () => { setPicked(null); setSaid(""); } : undefined } : undefined}
       onPick=${(id: string) => { setPicked(id); setSaid(""); }} />
     ${said ? html`<div class="sr-said" role="status">${said}</div>` : null}
 
-    <div class="sr-cols">
-      <div class="sr-col">
+    <div class="gr-col gr-stack">
       ${current
-        ? html`<div class="card pad next-step sr-move">
-            <div class="sr-move-top">
-              <div class="next-eyebrow">${away ? "Looking at" : "Your next move"} · step ${index} of ${all.length}${snoozed.size ? ` · ${snoozed.size} put off` : ""}</div>
-              <div class="sr-nav">
-                <button type="button" disabled=${index <= 1} onClick=${() => step(-1)} aria-label="Previous step">← Previous</button>
-                <button type="button" disabled=${index >= all.length} onClick=${() => step(1)} aria-label="Next step">Next →</button>
-              </div>
-            </div>
-            <div class="sr-move-sub">
-              ${stage ? html`<span class="muted">Stage ${plan.stages.indexOf(stage) + 1} of ${plan.stages.length} · ${stage.name}</span>` : html`<span></span>`}
-              <span class=${`pill ${INLINE[current.id] ? "green" : "slate"}`}>${INLINE[current.id] ?? (current.goto ? "Opens another screen" : "Mark it here")}</span>
-            </div>
-            ${away
-              ? html`<button type="button" class="sr-back" onClick=${() => { setPicked(null); setSaid(""); }}>↩ Back to your next move</button>`
-              : null}
+        ? html`<div class="card pad next-step sr-move gr-move"><div class="gr-main">
+            ${stage ? html`<div class="step-stage-line">Stage ${plan.stages.indexOf(stage) + 1} of ${plan.stages.length}<i>·</i>${stage.name}</div>` : null}
             <${Task} key=${current.id} task=${current} canEdit=${canEdit} busy=${busy} featured
               tpl=${current.template ? tpls[current.template] : undefined}
               inline=${html`<${InlineAction} taskId=${current.id} canEdit=${canEdit} themes=${themes}
                 ledBy=${ready?.words.ledBy ?? "Led by"} onDone=${(line: string) => void after(line)} />`}
               extra=${canEdit ? html`<button class="btn small ghost" onClick=${notNow}>Not now</button>` : null}
               onSet=${(state: TaskState, reason?: string, assign?: JourneyAssignment) => void set(current.id, state, reason, assign)} />
+            <div class="step-foot">
+              <button type="button" class="step-move" disabled=${index <= 1} onClick=${() => step(-1)} aria-label="Previous step">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+                Previous
+              </button>
+              <span class="next-eyebrow">step ${index} of ${all.length}</span>
+              <button type="button" class="step-move" disabled=${index >= all.length} onClick=${() => step(1)} aria-label="Next step">
+                Next
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+              </button>
+            </div>
+          </div>
+          <${UpNext} embedded=${true} plan=${plan} current=${current} snoozed=${snoozed} onPick=${(id: string) => { setPicked(id); setSaid(""); }} />
           </div>`
         : html`<div class="card pad next-step done">
             <div class="next-eyebrow">Every step is done or ruled out</div>
             <p style="margin:6px 0 0">What matters now is keeping the proof current, so it still shows everything working on the day of the audit.</p>
           </div>`}
-        <${FixFirst} ready=${ready} />
-      </div>
-      <div class="sr-col">
-        <${AuditorToday} ready=${ready} canEdit=${canEdit} onRerun=${async () => setReady(await readiness.get())} />
-        <${QuickWins} ready=${ready} />
-        <${ThreadSummary} itemLabel=${itemLabel} />
-      </div>
+      <${AuditorToday} ready=${ready} canEdit=${canEdit} onRerun=${async () => setReady(await readiness.get())} />
+      <${QuickWins} ready=${ready} />
     </div>
-    <${BulkActions} themes=${themes} canEdit=${canEdit} allowOut=${allowOut} onDone=${(line: string) => void after(line)} />
-  </>`;
+  </div>`;
 }
 
 export function Journey({ canEdit, itemLabel, ready = false, themes = {}, allowOut = false }: {
