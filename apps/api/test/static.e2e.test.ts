@@ -88,4 +88,19 @@ maybe("web bundle", () => {
       expect(res.body, url).not.toContain("TOP-SECRET");
     }
   });
+
+  // The page's styles come only from the product's own stylesheet. Inline
+  // style attributes cannot run script, but allowing them would let injected
+  // HTML dress itself up as a real message. The screens set styles through
+  // Preact, which writes them with the CSSOM that this policy does not block;
+  // a browser walk of every screen under this policy found no report.
+  it("allows styles from the product's own files only, never inline", async () => {
+    const res = await app.inject({ url: "/" });
+    const csp = String(res.headers["content-security-policy"] ?? "");
+    const style = /(?:^|;)\s*style-src ([^;]*)/.exec(csp)?.[1]?.trim();
+    expect(style).toBe("'self'");
+    expect(csp).not.toContain("'unsafe-inline'");
+    expect(csp).toMatch(/(?:^|;)\s*script-src 'self'(?:;|$)/);
+    expect(csp).toContain("script-src-attr 'none'");
+  });
 });

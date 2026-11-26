@@ -114,7 +114,10 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
+        // No 'unsafe-inline'. The screens set styles through Preact, which
+        // writes them with the CSSOM, and this policy does not block that; a
+        // style attribute arriving inside HTML (injected text) is blocked.
+        styleSrc: ["'self'"],
         imgSrc: ["'self'", "data:"],
         // Fonts ship with the product; nothing is fetched from elsewhere.
         fontSrc: ["'self'", "data:"],
