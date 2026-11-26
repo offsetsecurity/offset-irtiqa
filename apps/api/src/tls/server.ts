@@ -21,6 +21,13 @@ import type { TlsOptions } from "./certificate.js";
 
 const TLS_HANDSHAKE = 0x16;
 
+/**
+ * The lowest TLS version the server accepts, set here rather than left to
+ * Node.js. Its default is TLS 1.2 today, but `--tls-min-v1.0`, NODE_OPTIONS or
+ * a future default would lower it for any server that does not say.
+ */
+export const MIN_TLS_VERSION = "TLSv1.2" as const;
+
 /** The server this process is serving HTTPS on, if it is. */
 let live: HttpsServer | null = null;
 
@@ -35,7 +42,7 @@ export function servingHttps(): boolean {
  */
 export function applyLive(options: TlsOptions): boolean {
   if (!live) return false;
-  live.setSecureContext(options);
+  live.setSecureContext({ ...options, minVersion: MIN_TLS_VERSION });
   return true;
 }
 
@@ -61,7 +68,7 @@ function redirect(req: IncomingMessage, res: ServerResponse): void {
  */
 export function dualServerFactory(options: TlsOptions) {
   return (handler: (req: IncomingMessage, res: ServerResponse) => void): HttpsServer => {
-    const secure = createHttpsServer(options, handler);
+    const secure = createHttpsServer({ ...options, minVersion: MIN_TLS_VERSION }, handler);
     const plain = createHttpServer(redirect);
 
     // The TLS server's own listener turns a socket into a TLS connection.

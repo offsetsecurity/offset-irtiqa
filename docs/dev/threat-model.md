@@ -60,7 +60,7 @@ graph LR
 | 1a | One address guessing at every account, or locking them all out | 20 failed sign-ins from one address in 15 minutes block it, checked before any account is read, so it can neither guess nor push an account into lockout. Only failures count, so an office behind one address is not affected | `auth/address-limit.ts`, `test/audit.e2e.test.ts` |
 | 1b | Choosing the address the trail and the limits see | X-Forwarded-For is believed only from loopback or the proxies named in `TRUST_PROXY`. It used to be believed from anyone, so any caller could write any address into the audit trail and dodge an address limit | `app.ts`, `config.ts` |
 | 2 | Stealing a session | Random ID, HMAC-signed cookie; HttpOnly, Secure on HTTPS, SameSite=Lax; server-side sessions; 12-hour idle expiry | `auth/session.ts` |
-| 3 | Reading traffic on the network | Refuses to serve a network address without TLS unless deliberately overridden; HSTS in production | `server.ts`, `app.ts` |
+| 3 | Reading traffic on the network | Refuses to serve a network address without TLS unless deliberately overridden; TLS 1.2 or later, set in the product's code; HSTS in production | `server.ts`, `app.ts`, `tls/server.ts` |
 | 4 | Cross-site request forgery | Double-submit token checked in constant time on every write that needs a role, plus SameSite=Lax | `auth/rbac.ts`, `auth/session.ts` |
 | 5 | Cross-site scripting | Preact escapes output; CSP allows only the product's own scripts; no inline scripts | `app.ts` (helmet) |
 | 6 | Clickjacking | `frame-ancestors 'none'` | `app.ts` |
