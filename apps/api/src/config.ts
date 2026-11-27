@@ -99,7 +99,9 @@ const schema = z.object({
   /**
    * The longest any other request's body may take to arrive in full (see
    * lib/long-request.ts). Ten minutes lets a 25 MB evidence file through a
-   * slow line; only the administrator's backup routes may take longer.
+   * slow line; only the administrator's backup routes may take longer. If
+   * MAX_UPLOAD_MB is raised, raise this too: a 500 MB file in ten minutes
+   * needs a line of about 850 KB/s, or the upload is cut off unanswered.
    */
   BODY_TIMEOUT_MS: z.coerce.number().int().min(1000).max(86_400_000).default(600_000),
 
