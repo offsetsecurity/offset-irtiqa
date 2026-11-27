@@ -20,7 +20,7 @@ Up to about 50 users. For more, talk to us first.
 
 ## Windows
 
-1. Download **OffsetIrtiqa-0.2.3-setup.exe**
+1. Download **OffsetIrtiqa-0.3.0-setup.exe**
 2. Run it. Windows will warn you that the publisher is unknown - choose **More
    info**, then **Run anyway**. The installer is not code-signed yet
 3. It asks which port to use, and offers one that nothing else is using.
@@ -58,11 +58,11 @@ everything in it, and there is no undo.
 Ubuntu, Debian, RHEL, Amazon Linux and SUSE. It installs as two systemd
 services.
 
-1. Download **offset-ascend-0.2.3-linux-x64.tar.gz**
+1. Download **offset-ascend-0.3.0-linux-x64.tar.gz**
 2. Unpack it and run the installer as root:
 
 ```bash
-tar xzf offset-ascend-0.2.3-linux-x64.tar.gz
+tar xzf offset-ascend-0.3.0-linux-x64.tar.gz
 cd offset-ascend
 sudo ./install.sh ascend
 ```
@@ -99,7 +99,7 @@ installing Docker itself and says what you should see after every command.
 
 The short version, for somebody who knows Docker already:
 
-1. Download **offset-ascend-0.2.3-docker.zip** and unpack it
+1. Download **offset-ascend-0.3.0-docker.zip** and unpack it
 2. `cp env.example .env`, then fill in the two secrets it asks for
 3. Change `HTTP_PORT` and `PUBLIC_URL` together if 8080 is taken
 4. `docker compose up -d`

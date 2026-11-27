@@ -17,15 +17,67 @@ Every release is numbered x.y.z, for example 1.4.2:
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-27
+
+New features. Nothing you rely on is taken away, and your data moves across on
+its own when you update.
+
 ### Changed
 - **Offset Irtiqa is now open source,** under the Apache License 2.0. It is still
-  free. You may use, change and share it. See `LICENSE`.
+  free. You may use, change and share it. See `LICENSE` and `NOTICE`.
 - **The global UI**, the same look as every Offset product: the menu, top bar,
   account menu, Ctrl K to jump to any screen, the windows and the sign-in page.
-  The first screen is now called **Plan**, with a mock audit at the top that
-  shows what a SAMA assessor would find today. Settings opens on an overview
-  with a tab for each section. An Auditor view walks an assessor through the
-  product step by step.
+  Settings opens on an overview with a tab for each section, and About this
+  server with a Copy details button. An Auditor view walks an assessor through
+  the product step by step.
+- **Plan** (was Get ready): one move at a time, each step done in the card where
+  it can be, with fix-first and quick wins. A mock audit at the top shows what a
+  SAMA assessor would find today.
+- **Dashboard:** the path to the next SAMA assessment, the assessor's view, a
+  readiness forecast and who is carrying the work.
+
+### Security
+Fixes from the security check and the go-live check of this release, 26 and 27
+November 2026. Nothing critical or high was found; the four medium findings
+are the first four below.
+- **A slow or stalled request is cut off.** A connection that says nothing for
+  five minutes is closed, a request body must arrive within ten minutes, and
+  one whole request within an hour. Only an administrator's backups may take
+  longer.
+- **Updates copy the database first,** into the `before-upgrade` folder of the
+  backups (the newest three are kept), so an update can be undone. An older
+  version now refuses to open a database a newer one has changed.
+- **Setting a person's password ends an invitation** that was still waiting.
+- **A temporary password reaches nothing but choosing a new one,** however the
+  address is written.
+- **A save over somebody else's change is refused** with a plain message, so
+  the later of two saves no longer quietly wins. Reload and save again.
+- **Other hardening:** a full disk says so plainly; two people opening a new
+  install at the same moment cannot both become administrator; signing out
+  needs the page's security token; a disabled or locked account answers as
+  slowly as any other; a body too large to save is answered "too large"; odd
+  register names are refused; eleven missing database indexes; big lists can
+  be asked for one page at a time (`limit`, `offset`); the page may embed
+  nothing from other sites (Cross-Origin-Embedder-Policy); two package warnings
+  cleared.
+- **HTTPS accepts TLS 1.2 or later and strong ciphers only,** set in the
+  product itself, so a server setting cannot lower them. Also after a new
+  certificate is put on the running server.
+- **Names are kept as one line of visible text.** Owner, approver, tester and
+  user names lose line breaks and invisible characters that could make a name
+  read as something else in lists, emails and the audit trail. Names saved
+  before still save.
+- **The page refuses inline styles** as well as inline scripts (Content
+  Security Policy), so injected text cannot dress itself up.
+- **The Docker image carries no package manager** (apk) and no `wget` or `nc`
+  commands.
+
+### Developers
+- ESLint runs in CI; `pnpm lint` is clean.
+- The threat model has rows for the readiness screens, bulk changes and the
+  Settings overview.
+
+## [0.2.35] and earlier
 
 ### Fixed (0.2.35)
 - **Docker: uploaded evidence files survive updates.** The image never told the

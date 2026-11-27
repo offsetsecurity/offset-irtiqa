@@ -88,7 +88,7 @@ You should now see a version number. If you do, Docker is installed.
 
 **3.1** Download this file from the release page:
 
-    offset-ascend-0.2.3-docker.zip
+    offset-ascend-0.3.0-docker.zip
 
 It is small, about 6 KB. It is not the product - it is the instructions
 Docker needs to fetch the product for you.
