@@ -47,6 +47,9 @@ import { restoreInProgress } from "./backup/service.js";
 import type { TlsOptions } from "./tls/certificate.js";
 import { dualServerFactory } from "./tls/server.js";
 
+/** The most a JSON request may carry. Uploads have their own, larger limit. */
+const JSON_BODY_LIMIT = 2 * 1024 * 1024;
+
 /** All a session signed in with a temporary password may reach. */
 const MUST_CHANGE_ALLOWED = new Set([
   "/api/v1/auth/me",
@@ -97,7 +100,7 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
           ? false
           : config.TRUST_PROXY,
     genReqId: () => crypto.randomUUID(),
-    bodyLimit: 2 * 1024 * 1024,
+    bodyLimit: JSON_BODY_LIMIT,
   });
 
   if (options.routeTable) {
@@ -135,6 +138,23 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
   // microphone or anybody's location, so the page is told it may not ask.
   app.addHook("onRequest", async (_request, reply) => {
     reply.header("permissions-policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
+  });
+
+  // A JSON body that says up front it is over the limit is refused before a
+  // byte is used (G9 of the go-live gate, 27 Nov 2026; N1 in Offset Assure):
+  // before, a client sending several megabytes to sign-in was told nothing.
+  // The connection is not cut after the 413: cutting it while the client is
+  // still sending makes the client's system throw the 413 away. The request
+  // time limits still end a client that sends forever.
+  app.addHook("onRequest", async (request) => {
+    const declared = Number(request.headers["content-length"] ?? 0);
+    const json = String(request.headers["content-type"] ?? "").toLowerCase().startsWith("application/json");
+    if (json && declared > JSON_BODY_LIMIT) {
+      // The rest of the body is read and thrown away, so a client that sends the whole
+      // body before it reads the answer (Node's fetch does) finishes sending and gets the 413.
+      request.raw.resume();
+      throw new HttpError(413, "This request is too large to save.");
+    }
   });
 
   await app.register(cookie, { secret: config.SESSION_SECRET });
@@ -195,6 +215,19 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
     // the server was broken rather than to slow down.
     const status = (err as { statusCode?: unknown }).statusCode;
     if (typeof status === "number" && status >= 400 && status < 500) {
+      // A body that grew past the limit while it was being read (no length
+      // declared up front): read and drop the rest, so a client that sends it
+      // all before reading the answer still gets the 413.
+      if (status === 413) {
+        request.raw.resume();
+        // Fastify asks for the connection to be closed after a body it could
+        // not read; with a client still sending, that close throws the 413
+        // away. For a body with no declared length the rest is drained
+        // instead. A body that declared a length over the limit keeps
+        // Fastify's close, so nobody can make the server drain a huge
+        // declared size.
+        if (request.headers["content-length"] === undefined) reply.removeHeader("connection");
+      }
       return reply.code(status).send({ error: (err as Error).message });
     }
     // A link to a control, risk or record that does not exist, perhaps
