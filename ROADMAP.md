@@ -10,6 +10,9 @@ What is coming next. Dates are the quarter we plan to ship in.
   updated, smaller Docker images.
 - **October 2026, 0.2.35:** Docker installs keep evidence files across updates,
   and can keep their data in a folder you choose.
+- **November 2026, 0.3.0:** open source (Apache 2.0); the global UI shared by
+  every Offset product; the Plan and Dashboard redesign with a mock SAMA audit;
+  fixes from the release security check.
 
 ## Planned for Q1 2027
 
