@@ -74,18 +74,32 @@ export async function evidenceRoutes(app: FastifyInstance): Promise<void> {
       .object({
         freshness: z.enum(["fresh", "ageing", "due", "stale", "unknown"]).optional(),
         owner: z.string().optional(),
+        limit: z.coerce.number().int().min(1).max(500).optional(),
+        offset: z.coerce.number().int().min(0).max(1_000_000).optional(),
       })
       .parse(request.query);
+    // `limit` and `offset` are optional. The screens never send them and get
+    // the whole list as before; a client may ask for one page, so the database
+    // reads one page and not every row (a list of 5,000 was 2 to 3 MB; go-live
+    // gate for 0.3.0, G13; the same as Offset Assure).
+    // Freshness is worked out after the read, so it cannot be paged in the database.
+    if (q.limit !== undefined && q.freshness) throw badRequest("Page a list or filter it by freshness, not both.");
+    const paged = q.limit !== undefined;
 
     const { rows } = await query<EvidenceRow>(
       `select e.*, ${FRESHNESS}, ${CONTROL_IDS}
          from evidence e
         ${q.owner ? "where e.owner = $1" : ""}
-        order by e.collected_date desc, e.name`,
+        order by e.collected_date desc, e.name, e.id
+        ${paged ? `limit ${q.limit} offset ${q.offset ?? 0}` : ""}`,
       q.owner ? [q.owner] : [],
     );
 
     const hydrated = rows.map(hydrate);
+    if (paged) {
+      const total = (await query<{ n: number }>(`select count(*) as n from evidence e ${q.owner ? "where e.owner = $1" : ""}`, q.owner ? [q.owner] : [])).rows[0]?.n ?? 0;
+      return { evidence: hydrated, total: Number(total) };
+    }
     return {
       evidence: q.freshness ? hydrated.filter((r) => r["freshness"] === q.freshness) : hydrated,
     };
