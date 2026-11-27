@@ -115,13 +115,14 @@ export async function riskRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const whereSql = where.length ? `where ${where.join(" and ")}` : "";
+    const page = paged ? `limit $${params.length + 1} offset $${params.length + 2}` : "";
     const { rows } = await query<RiskRow>(
       `select r.*, ${SCORES}, ${CONTROL_IDS}
          from risks r
         ${whereSql}
         order by (r.likelihood * r.impact) desc, r.seq, r.id
-        ${paged ? `limit ${q.limit} offset ${q.offset ?? 0}` : ""}`,
-      params,
+        ${page}`,
+      paged ? [...params, q.limit, q.offset ?? 0] : params,
     );
 
     const hydrated = rows.map(hydrate);

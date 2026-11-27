@@ -141,7 +141,7 @@ export function registerRoutes<T extends z.ZodRawShape>(spec: RegisterSpec<T>) {
       // reads one page and not every row (a list of 5,000 was 2 to 3 MB; go-live
       // gate for 0.3.0, G13; the same as Offset Assure).
       if (q.limit !== undefined) {
-        const { rows } = await query<Record<string, unknown>>(`${select} order by ${order}, t.id limit ${q.limit} offset ${q.offset ?? 0}`);
+        const { rows } = await query<Record<string, unknown>>(`${select} order by ${order}, t.id limit $1 offset $2`, [q.limit, q.offset ?? 0]);
         const total = (await query<{ n: number }>(`select count(*) as n from ${spec.table}`)).rows[0]?.n ?? 0;
         return { [spec.path]: rows.map(hydrate), total: Number(total) };
       }

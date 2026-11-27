@@ -91,8 +91,8 @@ export async function evidenceRoutes(app: FastifyInstance): Promise<void> {
          from evidence e
         ${q.owner ? "where e.owner = $1" : ""}
         order by e.collected_date desc, e.name, e.id
-        ${paged ? `limit ${q.limit} offset ${q.offset ?? 0}` : ""}`,
-      q.owner ? [q.owner] : [],
+        ${paged ? (q.owner ? "limit $2 offset $3" : "limit $1 offset $2") : ""}`,
+      [...(q.owner ? [q.owner] : []), ...(paged ? [q.limit, q.offset ?? 0] : [])],
     );
 
     const hydrated = rows.map(hydrate);
