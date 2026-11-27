@@ -223,9 +223,8 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
         // Fastify asks for the connection to be closed after a body it could
         // not read; with a client still sending, that close throws the 413
         // away. For a body with no declared length the rest is drained
-        // instead. A body that declared a length over the limit keeps
-        // Fastify's close, so nobody can make the server drain a huge
-        // declared size.
+        // instead. Either way, the body time limit (BODY_TIMEOUT_MS) ends a
+        // client that keeps sending, so a huge body cannot hold the server.
         if (request.headers["content-length"] === undefined) reply.removeHeader("connection");
       }
       return reply.code(status).send({ error: (err as Error).message });
