@@ -1,10 +1,11 @@
 import { buildApp } from "./app.js";
 import { config, isLoopbackHost, product } from "./config.js";
 import { captureCrashes, logStartupContext, recordCrash } from "./lib/logging.js";
-import { migrate } from "./db/migrate.js";
+import { copyBeforeUpgrade, migrate } from "./db/migrate.js";
+import { APP_VERSION } from "./version.js";
 import { pool } from "./db/pool.js";
 import { seedIfEmpty } from "./db/seed.js";
-import { recoverMissingFiles } from "./backup/service.js";
+import { backupDir, recoverMissingFiles } from "./backup/service.js";
 import { CertificateError, loadTls } from "./tls/certificate.js";
 
 async function main(): Promise<void> {
@@ -55,6 +56,14 @@ async function main(): Promise<void> {
 
   // Migrations run at boot inside BEGIN IMMEDIATE, so a second process
   // starting at the same moment waits rather than applying anything twice.
+  // A copy first, so an upgrade can be undone (migrations only go forward).
+  const copy = await copyBeforeUpgrade(backupDir(), APP_VERSION);
+  if (copy) {
+    // The folder is not named: it comes from the settings, and CodeQL counts
+    // a setting written to the log as a possible secret.
+    // eslint-disable-next-line no-console
+    console.log("Copied the database before upgrading, into the backups folder's before-upgrade folder.");
+  }
   const { applied } = await migrate();
   if (applied.length) {
     // eslint-disable-next-line no-console
