@@ -5,6 +5,7 @@ import { query, withTransaction } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
 import { notFound } from "../lib/errors.js";
+import { assertUnchanged, changedMeanwhile, versioned } from "../lib/record-version.js";
 import { MATURITY_DEFAULT_TARGET, MATURITY_MAX, MATURITY_MIN } from "../config.js";
 import { compareRefs } from "../lib/refs.js";
 
@@ -284,6 +285,7 @@ export async function controlRoutes(app: FastifyInstance): Promise<void> {
     const { rows: existing } = await query<ControlRow>("select * from controls where id = $1", [id]);
     const before = existing[0];
     if (!before) throw notFound("Control not found.");
+    assertUnchanged(request, before);
 
     const sets: string[] = [];
     const params: unknown[] = [id];
@@ -312,11 +314,13 @@ export async function controlRoutes(app: FastifyInstance): Promise<void> {
     }
     if (!sets.length) return { control: hydrate(before) };
 
+    const same = versioned(request, before, sets, params);
     const { rows } = await query<ControlRow>(
-      `update controls set ${sets.join(", ")} where id = $1 returning *`,
+      `update controls set ${sets.join(", ")} where id = $1${same} returning *`,
       params,
     );
-    const after = rows[0]!;
+    if (!rows[0]) throw changedMeanwhile();
+    const after = rows[0];
 
     await audit(request, {
       action: "Control updated",

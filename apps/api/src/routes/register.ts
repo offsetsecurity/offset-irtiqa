@@ -6,6 +6,7 @@ import { query, withTransaction, type Sql } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
 import { notFound } from "../lib/errors.js";
+import { assertUnchanged, changedMeanwhile, versioned } from "../lib/record-version.js";
 import { removeAttachmentsOf } from "./attachments.js";
 
 /**
@@ -207,6 +208,7 @@ export function registerRoutes<T extends z.ZodRawShape>(spec: RegisterSpec<T>) {
       );
       const before = existingRows[0];
       if (!before) throw notFound(`${spec.label} not found.`);
+      assertUnchanged(request, before);
       spec.validate?.(body, before);
 
       const updated = await withTransaction(async (tx) => {
@@ -214,13 +216,19 @@ export function registerRoutes<T extends z.ZodRawShape>(spec: RegisterSpec<T>) {
 
         const entries = Object.entries(body).filter(([k]) => k in spec.columns);
         let row = before;
-        if (entries.length) {
+        // A change of links alone is a change too: it sets the new time, under
+        // the same version check (independent review, 27 Nov 2026).
+        const linksChanged = (spec.links ?? []).some((l) => (body as Record<string, unknown>)[l.input] !== undefined);
+        if (entries.length || linksChanged) {
           const sets = entries.map(([k], i) => `${spec.columns[k]} = $${i + 2}`);
+          const params: unknown[] = [id, ...entries.map(([, v]) => v ?? null)];
+          const same = versioned(request, before, sets, params);
           const { rows } = await tx.query<Record<string, unknown>>(
-            `update ${spec.table} set ${sets.join(", ")} where id = $1 returning *`,
-            [id, ...entries.map(([, v]) => v ?? null)],
+            `update ${spec.table} set ${sets.join(", ")} where id = $1${same} returning *`,
+            params,
           );
-          row = rows[0]!;
+          if (!rows[0]) throw changedMeanwhile();
+          row = rows[0];
         }
         await replaceLinks(tx, spec as RegisterSpec<z.ZodRawShape>, id, body);
         return row;
