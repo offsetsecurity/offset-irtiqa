@@ -129,8 +129,23 @@ export function registerRoutes<T extends z.ZodRawShape>(spec: RegisterSpec<T>) {
   const order = spec.orderBy ?? "t.seq";
 
   return async function routes(app: FastifyInstance): Promise<void> {
-    app.get(base, { preHandler: canRead }, async () => {
-      const { rows } = await query<Record<string, unknown>>(`${select} order by ${order}`);
+    app.get(base, { preHandler: canRead }, async (request) => {
+      const q = z
+        .object({
+          limit: z.coerce.number().int().min(1).max(500).optional(),
+          offset: z.coerce.number().int().min(0).max(1_000_000).optional(),
+        })
+        .parse(request.query);
+      // `limit` and `offset` are optional. The screens never send them and get
+      // the whole list as before; a client may ask for one page, so the database
+      // reads one page and not every row (a list of 5,000 was 2 to 3 MB; go-live
+      // gate for 0.3.0, G13; the same as Offset Assure).
+      if (q.limit !== undefined) {
+        const { rows } = await query<Record<string, unknown>>(`${select} order by ${order}, t.id limit $1 offset $2`, [q.limit, q.offset ?? 0]);
+        const total = (await query<{ n: number }>(`select count(*) as n from ${spec.table}`)).rows[0]?.n ?? 0;
+        return { [spec.path]: rows.map(hydrate), total: Number(total) };
+      }
+      const { rows } = await query<Record<string, unknown>>(`${select} order by ${order}, t.id`);
       return { [spec.path]: rows.map(hydrate) };
     });
 
