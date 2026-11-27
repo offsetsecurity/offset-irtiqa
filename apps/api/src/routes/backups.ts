@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { z } from "zod";
 import { isAdmin, requireAuth } from "../auth/rbac.js";
+import { noIdleTimeout } from "../lib/long-request.js";
 import { audit } from "../audit/audit.js";
 import { badRequest } from "../lib/errors.js";
 import { query } from "../db/pool.js";
@@ -36,6 +37,7 @@ export async function backupRoutes(app: FastifyInstance): Promise<void> {
 
   app.post("/api/v1/backups", { preHandler: isAdmin }, async (request, reply) => {
     requireAuth(request);
+    noIdleTimeout(request);
     const backup = await createBackup("manual");
     await pruneBackups([backup.name]);
     await audit(request, { action: "Backup taken", entity: "backup", entityId: backup.name, after: backup });
@@ -57,6 +59,8 @@ export async function backupRoutes(app: FastifyInstance): Promise<void> {
 
   app.post("/api/v1/backups/upload", { preHandler: isAdmin }, async (request, reply) => {
     requireAuth(request);
+    // A backup can be gigabytes: an administrator may take longer than the body limit.
+    noIdleTimeout(request);
     const file = await request.file({ limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 } });
     if (!file) throw badRequest("Choose a backup file to upload.");
 
@@ -81,6 +85,7 @@ export async function backupRoutes(app: FastifyInstance): Promise<void> {
     requireAuth(request);
     const { name } = nameParam.parse(request.params);
     restoreBody.parse(request.body);
+    noIdleTimeout(request);
     const actor = { id: request.user.id, username: request.user.username };
 
     const result = await restoreBackup(name).catch(translate);

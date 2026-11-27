@@ -80,6 +80,29 @@ const schema = z.object({
   FIELD_ENC_KEY: z.string().min(16),
   SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(720).default(12),
 
+  // ── slow and stalled requests ─────────────────────────────────────────────
+  /**
+   * How long a connection may say nothing, in either direction, before the
+   * server closes it. Without this, anyone who can reach the port can open
+   * connections, send half a request and stop, and the server holds them for
+   * ever (go-live gate for 0.3.0, 27 Nov 2026). Five minutes is far longer
+   * than a restore or a report takes to start answering, and far shorter
+   * than for ever.
+   */
+  SOCKET_IDLE_TIMEOUT_MS: z.coerce.number().int().min(1000).max(3_600_000).default(300_000),
+  /**
+   * The longest the server will wait to receive one whole request. A backup
+   * upload can be several gigabytes, so this is generous; it is the limit on
+   * a sender who trickles a byte at a time, which the idle timeout cannot see.
+   */
+  REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).max(86_400_000).default(3_600_000),
+  /**
+   * The longest any other request's body may take to arrive in full (see
+   * lib/long-request.ts). Ten minutes lets a 25 MB evidence file through a
+   * slow line; only the administrator's backup routes may take longer.
+   */
+  BODY_TIMEOUT_MS: z.coerce.number().int().min(1000).max(86_400_000).default(600_000),
+
   // ── background worker ─────────────────────────────────────────────────────
   /** How often the worker looks for due work. */
   WORKER_POLL_SECONDS: z.coerce.number().int().min(5).max(3600).default(30),

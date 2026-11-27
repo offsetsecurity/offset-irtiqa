@@ -90,10 +90,19 @@ function redirect(req: IncomingMessage, res: ServerResponse): void {
  * A Fastify `serverFactory` for HTTPS on a port that also turns `http://`
  * into a redirect.
  */
-export function dualServerFactory(options: TlsOptions) {
+export function dualServerFactory(options: TlsOptions, limits: { idleMs: number; requestMs: number }) {
   return (handler: (req: IncomingMessage, res: ServerResponse) => void): HttpsServer => {
     const secure = createHttpsServer({ ...options, ...TLS_RULES }, handler);
+    // Fastify sets these on a server it makes itself, and not on one a
+    // serverFactory makes: so they are set here, or a server that answers
+    // HTTPS would hold a half-sent request for ever.
+    secure.setTimeout(limits.idleMs);
+    secure.requestTimeout = limits.requestMs;
     const plain = createHttpServer(redirect);
+    // The plain server only ever sends a redirect: it has no business holding
+    // a connection open for long.
+    plain.setTimeout(30_000);
+    plain.requestTimeout = 30_000;
 
     // The TLS server's own listener turns a socket into a TLS connection.
     // Take it out, and hand it only the sockets that start with a handshake.
