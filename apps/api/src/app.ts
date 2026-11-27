@@ -128,6 +128,9 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
         formAction: ["'self'"],
       },
     },
+    // The page embeds nothing from elsewhere, so this costs nothing and closes
+    // a ZAP warning (go-live gate for 0.3.0, G14; the same as Offset Assure).
+    crossOriginEmbedderPolicy: { policy: "require-corp" },
     hsts: isProd ? { maxAge: 31_536_000, includeSubDomains: true } : false,
   });
 
