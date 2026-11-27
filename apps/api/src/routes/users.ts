@@ -311,6 +311,9 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
       // Every existing session for that account is now suspect.
       await tx.query("delete from sessions where user_id = $1", [id]);
     });
+    // An invitation or a reset still outstanding would sign in even through a
+    // lockout, long after the administrator chose a password (G3).
+    await spendAll(id);
 
     const subject = await byId(id);
     // Sent even though the password itself is not in it. Somebody whose

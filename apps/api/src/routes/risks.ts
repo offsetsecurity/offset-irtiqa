@@ -6,6 +6,7 @@ import { query, withTransaction } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
 import { badRequest, notFound, HttpError } from "../lib/errors.js";
+import { assertUnchanged, changedMeanwhile, versioned } from "../lib/record-version.js";
 
 const idParam = z.object({ id: z.string().uuid() });
 const score = z.number().int().min(1).max(5);
@@ -91,8 +92,17 @@ export async function riskRoutes(app: FastifyInstance): Promise<void> {
         status: z.enum(STATUSES).optional(),
         band: z.enum(["critical", "elevated", "acceptable"]).optional(),
         owner: z.string().optional(),
+        limit: z.coerce.number().int().min(1).max(500).optional(),
+        offset: z.coerce.number().int().min(0).max(1_000_000).optional(),
       })
       .parse(request.query);
+    // `limit` and `offset` are optional. The screens never send them and get
+    // the whole list as before; a client may ask for one page, so the database
+    // reads one page and not every row (a list of 5,000 was 2 to 3 MB; go-live
+    // gate for 0.3.0, G13; the same as Offset Assure).
+    // A band is worked out after the read, so it cannot be paged in the database.
+    if (q.limit !== undefined && q.band) throw badRequest("Page a list or filter it by band, not both.");
+    const paged = q.limit !== undefined;
 
     const where: string[] = [];
     const params: unknown[] = [];
@@ -105,15 +115,22 @@ export async function riskRoutes(app: FastifyInstance): Promise<void> {
       where.push(`r.owner = $${params.length}`);
     }
 
+    const whereSql = where.length ? `where ${where.join(" and ")}` : "";
+    const page = paged ? `limit $${params.length + 1} offset $${params.length + 2}` : "";
     const { rows } = await query<RiskRow>(
       `select r.*, ${SCORES}, ${CONTROL_IDS}
          from risks r
-        ${where.length ? `where ${where.join(" and ")}` : ""}
-        order by (r.likelihood * r.impact) desc, r.seq`,
-      params,
+        ${whereSql}
+        order by (r.likelihood * r.impact) desc, r.seq, r.id
+        ${page}`,
+      paged ? [...params, q.limit, q.offset ?? 0] : params,
     );
 
     const hydrated = rows.map(hydrate);
+    if (paged) {
+      const total = (await query<{ n: number }>(`select count(*) as n from risks r ${whereSql}`, params)).rows[0]?.n ?? 0;
+      return { risks: hydrated, total: Number(total) };
+    }
     return { risks: q.band ? hydrated.filter((r) => r["band"] === q.band) : hydrated };
   });
 
@@ -213,6 +230,7 @@ export async function riskRoutes(app: FastifyInstance): Promise<void> {
     );
     const before = existing[0];
     if (!before) throw notFound("Risk not found.");
+    assertUnchanged(request, before);
     if (body.title !== undefined) await refuseDuplicate(body.title, id);
 
     if ((body.status ?? before["status"]) === "Accepted" && !(body.acceptedBy ?? before["accepted_by"])) {
@@ -231,11 +249,14 @@ export async function riskRoutes(app: FastifyInstance): Promise<void> {
       let row = before;
       if (entries.length) {
         const sets = entries.map(([k], i) => `${COLUMN[k]} = $${i + 2}`);
+        const params: unknown[] = [id, ...entries.map(([, v]) => v ?? null)];
+        const same = versioned(request, before, sets, params);
         const { rows } = await tx.query<Record<string, unknown>>(
-          `update risks set ${sets.join(", ")} where id = $1 returning *`,
-          [id, ...entries.map(([, v]) => v ?? null)],
+          `update risks set ${sets.join(", ")} where id = $1${same} returning *`,
+          params,
         );
-        row = rows[0]!;
+        if (!rows[0]) throw changedMeanwhile();
+        row = rows[0];
       }
       if (body.controlIds !== undefined) await replaceLinks(tx, id, body.controlIds);
       return row;

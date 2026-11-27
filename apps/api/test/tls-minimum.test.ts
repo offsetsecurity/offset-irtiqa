@@ -78,7 +78,7 @@ describe.skipIf(!hasOpenssl)("HTTPS minimum version and ciphers", () => {
     tls.DEFAULT_MIN_VERSION = "TLSv1";
     tls.DEFAULT_CIPHERS = "DEFAULT@SECLEVEL=0";
 
-    server = dualServerFactory({ key, cert })((_req, res) => res.end("ok"));
+    server = dualServerFactory({ key, cert }, { idleMs: 300_000, requestMs: 3_600_000 })((_req, res) => res.end("ok"));
     await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
     port = (server.address() as AddressInfo).port;
 

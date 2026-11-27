@@ -46,6 +46,7 @@ import { settingsOverviewRoutes } from "./routes/settings-overview.js";
 import { restoreInProgress } from "./backup/service.js";
 import type { TlsOptions } from "./tls/certificate.js";
 import { dualServerFactory } from "./tls/server.js";
+import { startBodyTimer, stopBodyTimer } from "./lib/long-request.js";
 
 /** The most a JSON request may carry. Uploads have their own, larger limit. */
 const JSON_BODY_LIMIT = 2 * 1024 * 1024;
@@ -64,6 +65,10 @@ export interface BuildOptions {
   https?: TlsOptions;
   /** Filled with every route and the roles its guard allows; used by the access tests. */
   routeTable?: { method: string; url: string; allowed: readonly string[] | null }[];
+  /** For tests: a shorter idle timeout than the setting, to watch a stalled connection close. */
+  socketIdleTimeoutMs?: number;
+  /** For tests: a shorter limit for a request body to arrive than the setting. */
+  bodyTimeoutMs?: number;
 }
 
 export async function buildApp(options: BuildOptions = {}): Promise<FastifyInstance> {
@@ -91,7 +96,14 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
 
   const app = Fastify({
     ...logging,
-    ...(options.https ? { serverFactory: dualServerFactory(options.https) } : {}),
+    ...(options.https
+      ? {
+          serverFactory: dualServerFactory(options.https, {
+            idleMs: options.socketIdleTimeoutMs ?? config.SOCKET_IDLE_TIMEOUT_MS,
+            requestMs: config.REQUEST_TIMEOUT_MS,
+          }),
+        }
+      : {}),
     // Only the proxies named in TRUST_PROXY; see config.ts for why not everyone.
     trustProxy:
       config.TRUST_PROXY === "true"
@@ -101,6 +113,19 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
           : config.TRUST_PROXY,
     genReqId: () => crypto.randomUUID(),
     bodyLimit: JSON_BODY_LIMIT,
+    // A connection that goes quiet, or a request that never finishes arriving,
+    // is closed. See SOCKET_IDLE_TIMEOUT_MS in config.ts for why.
+    connectionTimeout: options.socketIdleTimeoutMs ?? config.SOCKET_IDLE_TIMEOUT_MS,
+    requestTimeout: config.REQUEST_TIMEOUT_MS,
+  });
+
+  // A body that trickles in is cut off long before the server-wide hour.
+  const bodyMs = options.bodyTimeoutMs ?? config.BODY_TIMEOUT_MS;
+  app.addHook("onRequest", async (request) => startBodyTimer(request, bodyMs));
+  // Only once the body has fully arrived: after an early refusal (401, 413)
+  // Node keeps reading the rest, and the limit must still end a trickle.
+  app.addHook("onResponse", async (request) => {
+    if (request.raw.complete) stopBodyTimer(request);
   });
 
   if (options.routeTable) {
@@ -131,6 +156,9 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
         formAction: ["'self'"],
       },
     },
+    // The page embeds nothing from elsewhere, so this costs nothing and closes
+    // a ZAP warning (go-live gate for 0.3.0, G14; the same as Offset Assure).
+    crossOriginEmbedderPolicy: { policy: "require-corp" },
     hsts: isProd ? { maxAge: 31_536_000, includeSubDomains: true } : false,
   });
 
@@ -191,8 +219,17 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
     // temporary password read from somebody's inbox is never a way in to the
     // data itself.
     if (request.user?.mustChangePassword) {
-      const path = request.url.split("?")[0] ?? "";
-      if (path.startsWith("/api/") && !MUST_CHANGE_ALLOWED.has(path)) {
+      // The address the router actually matched, not the text the caller typed:
+      // "/%61pi/v1/..." reaches the same route as "/api/v1/..." but does not
+      // start with "/api/" (G4 of the go-live gate, 27 Nov 2026; F1 in Offset
+      // Assure). The raw and the decoded text are checked as well, so nothing
+      // slips between.
+      const raw = request.url.split("?")[0] ?? "";
+      let decoded = raw;
+      try { decoded = decodeURIComponent(raw); } catch { /* an undecodable address is judged as typed */ }
+      const matched = request.routeOptions?.url ?? "";
+      const isApi = [matched, raw, decoded].some((p) => p.startsWith("/api/"));
+      if (isApi && !MUST_CHANGE_ALLOWED.has(matched || decoded)) {
         throw new HttpError(403, "Choose a new password before continuing.");
       }
     }
@@ -235,6 +272,17 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
     if ((err as { code?: unknown }).code === "SQLITE_CONSTRAINT_FOREIGNKEY") {
       return reply.code(400).send({
         error: "Something this links to no longer exists. Refresh the page and try again.",
+      });
+    }
+    // The server's disk is full (the file system or the database ran out of
+    // room). Nothing was saved: the file being written is removed and SQLite
+    // rolls the change back. Say so in plain words, so the person knows it is
+    // not their mistake and whom to ask (go-live check, 27 Nov 2026).
+    const code = (err as { code?: unknown }).code;
+    if (code === "ENOSPC" || code === "EDQUOT" || code === "SQLITE_FULL") {
+      request.log.error({ err }, "the disk is full");
+      return reply.code(507).send({
+        error: "The server's disk is full, so this was not saved. Ask the person who runs the server to free some space, then try again.",
       });
     }
     request.log.error({ err }, "unhandled error");

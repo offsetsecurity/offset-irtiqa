@@ -99,41 +99,96 @@ before anything is written, so a log is safe to send to somebody.
 See [logs and troubleshooting](../../docs/ops/logs-and-troubleshooting.md) for
 what each file means and a symptom-to-cause table.
 
-## A different product
+## The product's name on Docker
 
-One image per framework. `PRODUCT` in `.env` selects it and is baked in at
-build time:
-
-```ini
-PRODUCT=assure   # ISO/IEC 27001:2022
-PRODUCT=align    # NIST Cybersecurity Framework 2.0
-PRODUCT=anchor   # NIST SP 800-53 Rev. 5
-PRODUCT=ascend   # SAMA Cyber Security Framework (Offset Irtiqa)
-```
-
-The project, and so every volume, is named after the product: `offset-align`,
-with `offset-align_data`, `offset-align_backups` and so on. Two products on one
-machine therefore get two databases without anyone having to remember to ask
-for them. The volume names in the commands above change with it.
+`PRODUCT=ascend` in `.env` is Offset Irtiqa (SAMA Cyber Security Framework).
+The project, and so every volume, is named after it: `offset-ascend`, with
+`offset-ascend_data`, `offset-ascend_backups` and so on.
 
 ## Before you expose it
 
-The port is bound to `127.0.0.1` on purpose. **This product terminates no TLS
-of its own**, so publishing it directly would put session cookies and
-passwords on the wire in clear.
+The port is bound to `127.0.0.1` on purpose: without HTTPS, publishing it
+would put session cookies and passwords on the wire in clear.
 
-Put a reverse proxy in front, give it a certificate, and only then change the
-port mapping in `compose.yaml` from `127.0.0.1:8080:8080` to `8080:8080`.
+Either give the product its own certificate (a `certs` folder beside
+`compose.yaml`, or upload one under **Settings → HTTPS**; see `INSTALL.md`,
+"Turning on HTTPS"), or put a reverse proxy with a certificate in front. Only
+then change the port mapping in `compose.yaml` from `127.0.0.1:8080:8080` to
+`8080:8080`. The product's own HTTPS accepts TLS 1.2 or later, with strong
+ciphers only.
+
+## What it connects to
+
+Nothing, unless you ask:
+
+- **Updates:** only when an administrator presses **Check for updates**, to
+  `github.com` (this product's own releases page) over HTTPS.
+- **Email:** only if you turn on outgoing email, to the mail server you name.
+
+No usage data, no licence check, nothing else.
 
 ## Updating
 
+**First, take a full backup:** Backups → **Take a backup now**, and
+**Download** it. The update takes its own backup too, and the new version
+copies the database into `backups/before-upgrade` before it changes anything,
+but those hold the database only, not the evidence files.
+
+**From the screen:** Settings → Updates → **Check for updates**, then
+**Update now**. The `updater` container takes a backup, pulls the new image,
+checks its signature and starts it. If the new version does not start, the
+old one and the data are put back.
+
+**By hand:**
+
 ```bash
-git pull
-docker compose up -d --build
+docker compose exec app node dist/db/backup.js   # a backup first
+docker compose pull
+docker compose up -d
 ```
 
-Migrations run at start-up and are idempotent. The volumes are untouched by a
-rebuild. Take a backup first anyway — see above.
+Migrations run at start-up. They only go forward, and they are safe to stop
+half-way: a start that is interrupted finishes on the next start. From 0.3.0,
+an older version refuses to start on a database a newer one has changed, and
+says so: going back is always through a backup (below).
+
+## Going back a version
+
+Migrations only go forward, so the way back is the backup taken before the
+update:
+
+1. Have the full backup you took by hand before the update (Backups → Take a
+   backup now, then Download). The automatic "Before an update" one holds
+   the database only, and step 3 deletes the evidence files.
+2. In `.env`, set `OFFSET_IMAGE` and `OFFSET_UPDATER_IMAGE` to the old
+   version, for example `ghcr.io/offsetsecurity/offset-ascend:0.2.35`.
+3. `docker compose down -v` (this deletes the database; you have the backup),
+   then `docker compose up -d`.
+4. Open the product, create a temporary first account, then **Backups →
+   Upload a backup** and **Restore** the file from step 1. Everyone signs in
+   again with the accounts as they were.
+
+This was tried for 0.3.0: a backup from 0.2.35 restored onto 0.2.35 brought
+every table and every evidence file back.
+
+## Changing the secrets
+
+| Secret | What happens when it changes |
+|---|---|
+| `SESSION_SECRET` | Everyone is signed out and signs in again. Nothing else changes. |
+| `FIELD_ENC_KEY` | The product starts and everything works, except saved secrets such as the mail password: type it again under Settings → Outgoing email. |
+
+Change one in `.env`, then `docker compose up -d`.
+
+## If a release is bad
+
+A release is never replaced or withdrawn quietly. A bad one is followed by a
+new patch version that fixes or removes the change, and its notes say what
+happened. Meanwhile:
+
+- **Find out what happened:** the audit trail (menu → Audit trail), and the
+  `logs` volume.
+- **Go back:** see "Going back a version" above.
 
 ## Removing it
 

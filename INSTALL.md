@@ -30,7 +30,7 @@ What you download:
 
 | Framework | Windows installer | Linux installer |
 |---|---|---|
-| SAMA Cyber Security Framework | `OffsetIrtiqa-0.1.5-setup.exe` | `offset-ascend-0.1.5-linux-x64.tar.gz` |
+| SAMA Cyber Security Framework | `OffsetIrtiqa-0.3.0-setup.exe` | `offset-ascend-0.3.0-linux-x64.tar.gz` |
 
 The version number in the file names changes with each release.
 
@@ -101,7 +101,7 @@ Nothing else. No database to install, no runtime to install.
 
 ### Option A — the installer
 
-1. Run **`OffsetIrtiqa-0.1.0-setup.exe`**.
+1. Run **`OffsetIrtiqa-0.3.0-setup.exe`**.
 
 2. Windows will say **"Windows protected your PC"**.
 
@@ -237,8 +237,8 @@ Unpack the release, check it arrived intact, and run the
 installer:
 
 ```bash
-sha256sum --check offset-ascend-0.1.0-linux-x64.tar.gz.sha256
-tar xzf offset-ascend-0.1.0-linux-x64.tar.gz
+sha256sum --check offset-ascend-0.3.0-linux-x64.tar.gz.sha256
+tar xzf offset-ascend-0.3.0-linux-x64.tar.gz
 cd offset-ascend
 sudo ./install.sh
 ```
@@ -362,7 +362,7 @@ You need Docker and the Compose plugin. Pull the image and
 start it:
 
 ```bash
-docker pull ghcr.io/offsetsecurity/offset-ascend:0.1.5
+docker pull ghcr.io/offsetsecurity/offset-ascend:0.3.0
 ```
 
 `deploy/docker/compose.yaml` and `env.example` in this repository show the
