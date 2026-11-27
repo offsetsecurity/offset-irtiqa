@@ -2,11 +2,11 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { personName } from "../lib/schema.js";
 import { randomBytes, randomUUID } from "node:crypto";
-import { query } from "../db/pool.js";
+import { query, withTransaction } from "../db/pool.js";
 import { nowIso } from "../lib/time.js";
 import { hashPassword, needsRehash, validatePasswordStrength, verifyPassword } from "../auth/password.js";
 import {
-  afterPasswordChange, createSession, destroySession, type SessionUser, type UserRole,
+  afterPasswordChange, createSession, destroySession, verifyCsrf, type SessionUser, type UserRole,
 } from "../auth/session.js";
 import { requireAuth, canRead } from "../auth/rbac.js";
 import { audit, auditAnonymous } from "../audit/audit.js";
@@ -178,12 +178,19 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     if (strength) throw badRequest(strength);
 
     const hash = await hashPassword(body.password);
-    const { rows: created } = await query<UserRow>(
-      `insert into users (id, username, name, email, role, auth_source, password_hash)
-       values ($1, $2, $3, $4, 'admin', 'local', $5)
-       returning id, username, name, email, role`,
-      [randomUUID(), body.username, body.name, body.email, hash],
-    );
+    // The door is checked again inside the write lock: two requests that both
+    // passed the first check cannot both create an administrator (G7).
+    const created = await withTransaction(async (tx) => {
+      const { rows: again } = await tx.query<{ n: number }>("select count(*) as n from users");
+      if ((again[0]?.n ?? 0) > 0) throw new HttpError(409, "Setup has already been completed.");
+      const { rows: made } = await tx.query<UserRow>(
+        `insert into users (id, username, name, email, role, auth_source, password_hash)
+         values ($1, $2, $3, $4, 'admin', 'local', $5)
+         returning id, username, name, email, role`,
+        [randomUUID(), body.username, body.name, body.email, hash],
+      );
+      return made;
+    });
 
     const user = created[0]!;
     await auditAnonymous(request.ip, "Bootstrap admin created", user.username);
@@ -246,11 +253,18 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       await verifyPassword(await standInHash(), body.password);
       return reject("no such user");
     }
-    if (row.disabled) return reject("account disabled");
+    if (row.disabled) {
+      // Pays for a hash too, so a disabled account is not told apart by timing (G10).
+      await verifyPassword(await standInHash(), body.password);
+      return reject("account disabled");
+    }
     const locked = Boolean(row.locked_until && row.locked_until > nowIso());
 
     // The real password, unless the account is locked out.
     let ok = !locked && (await verifyPassword(row.password_hash, body.password));
+    // A locked account checks nothing above; it pays for a hash anyway, so it
+    // is not told apart by timing either (G10).
+    if (locked) await verifyPassword(await standInHash(), body.password);
 
     // Otherwise an administrator's temporary password, which works through a
     // lockout: being locked out is the usual reason for asking for one, and at
@@ -389,6 +403,8 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.post("/api/v1/auth/logout", async (request, reply) => {
+    // A page on another site must not be able to sign a person out (G8).
+    if (request.user && !verifyCsrf(request)) throw new HttpError(403, "Missing or invalid CSRF token.");
     if (request.user) {
       await audit(request, { action: "Signed out", entity: "user", entityId: request.user.id });
     }
