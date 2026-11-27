@@ -216,8 +216,8 @@ Turning a working application into something a customer can install:
   Still unsigned. Windows will show "Windows protected your PC" until there
   is a certificate.
 - **Licence verification** — **cancelled.** There is one edition and it is
-  free: no licence key, no activation, nothing phoning home. `LICENSE_FILE`
-  and `LICENSE_ENFORCE` are still in `config.ts` and should come out.
+  free: no licence key, no activation, nothing phoning home. The last
+  `LICENSE_FILE` and `LICENSE_ENFORCE` lines are gone from the examples.
 - **Air-gapped bundle** ✅ done 2026-09-11, ❌ removed 2026-09-24. Three
   delivery tracks was one too many to keep current, and the customer it was
   for - a server with no internet at all - was not one we have. Windows and

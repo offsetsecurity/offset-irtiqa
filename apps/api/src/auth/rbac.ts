@@ -5,7 +5,7 @@ import { HttpError } from "../lib/errors.js";
 
 /**
  * Roles, most privileged first.
- *  admin       — everything, plus users / backup / licence / SSO / SMTP
+ *  admin       — everything, plus users / backup / email settings
  *  contributor — read and write all GRC data
  *  auditor     — read everything, plus the security audit log; no writes
  *  readonly    — read everything; every write is rejected
