@@ -6,6 +6,7 @@ import { query, withTransaction } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
 import { badRequest, notFound, HttpError } from "../lib/errors.js";
+import { assertUnchanged, changedMeanwhile, versioned } from "../lib/record-version.js";
 
 const idParam = z.object({ id: z.string().uuid() });
 const score = z.number().int().min(1).max(5);
@@ -213,6 +214,7 @@ export async function riskRoutes(app: FastifyInstance): Promise<void> {
     );
     const before = existing[0];
     if (!before) throw notFound("Risk not found.");
+    assertUnchanged(request, before);
     if (body.title !== undefined) await refuseDuplicate(body.title, id);
 
     if ((body.status ?? before["status"]) === "Accepted" && !(body.acceptedBy ?? before["accepted_by"])) {
@@ -231,11 +233,14 @@ export async function riskRoutes(app: FastifyInstance): Promise<void> {
       let row = before;
       if (entries.length) {
         const sets = entries.map(([k], i) => `${COLUMN[k]} = $${i + 2}`);
+        const params: unknown[] = [id, ...entries.map(([, v]) => v ?? null)];
+        const same = versioned(request, before, sets, params);
         const { rows } = await tx.query<Record<string, unknown>>(
-          `update risks set ${sets.join(", ")} where id = $1 returning *`,
-          [id, ...entries.map(([, v]) => v ?? null)],
+          `update risks set ${sets.join(", ")} where id = $1${same} returning *`,
+          params,
         );
-        row = rows[0]!;
+        if (!rows[0]) throw changedMeanwhile();
+        row = rows[0];
       }
       if (body.controlIds !== undefined) await replaceLinks(tx, id, body.controlIds);
       return row;

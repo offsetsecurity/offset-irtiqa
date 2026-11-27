@@ -6,6 +6,7 @@ import { query } from "../db/pool.js";
 import { canRead, canWrite, requireAuth, assertCanWrite } from "../auth/rbac.js";
 import { audit } from "../audit/audit.js";
 import { badRequest, notFound } from "../lib/errors.js";
+import { tellNewVersion } from "../lib/record-version.js";
 import { config } from "../config.js";
 import { attachmentHeader, deleteStored, pathOfStored, storeFile, UploadTooLarge } from "../lib/files.js";
 
@@ -118,10 +119,11 @@ export async function attachmentRoutes(app: FastifyInstance): Promise<void> {
        values ($1, $2, $3, $4, $5, $6, $7, $8) returning *`,
       [attachmentId, table, id, stored.key, stored.name, stored.size, stored.sha256, request.user.name],
     );
-    await query(
-      `update ${table} set updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') where id = $1`,
+    const { rows: touched } = await query<{ id: string; updated_at: string }>(
+      `update ${table} set updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') where id = $1 returning id, updated_at`,
       [id],
     );
+    tellNewVersion(reply, touched[0]);
 
     await audit(request, {
       action: `${label} file attached`,
