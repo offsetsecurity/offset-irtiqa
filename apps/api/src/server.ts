@@ -59,8 +59,10 @@ async function main(): Promise<void> {
   // A copy first, so an upgrade can be undone (migrations only go forward).
   const copy = await copyBeforeUpgrade(backupDir(), APP_VERSION);
   if (copy) {
+    // The folder is not named: it comes from the settings, and CodeQL counts
+    // a setting written to the log as a possible secret.
     // eslint-disable-next-line no-console
-    console.log(`Copied the database before upgrading: ${copy}`);
+    console.log("Copied the database before upgrading, into the backups folder's before-upgrade folder.");
   }
   const { applied } = await migrate();
   if (applied.length) {
