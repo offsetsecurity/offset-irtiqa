@@ -96,4 +96,32 @@ maybe("GL-5: a record changed meanwhile is not overwritten", () => {
       expect((await save(c.path(id), c.change(4))).statusCode).toBe(200);
     });
   }
+
+  const linked: { name: string; create: () => Promise<string>; path: (id: string) => string; key: string; change: Record<string, unknown> }[] = [
+    {
+      name: "evidence",
+      create: async () => ((await app.inject({ method: "POST", url: "/api/v1/evidence", headers, payload: { name: "Links-only evidence" } })).json() as { evidence: { id: string } }).evidence.id,
+      path: (id) => `/api/v1/evidence/${id}`, key: "evidence", change: { notes: "Saved from the old version" },
+    },
+    {
+      name: "a register entry (an asset)",
+      create: async () => ((await app.inject({ method: "POST", url: "/api/v1/assets", headers, payload: { name: "Links-only asset", owner: "Asset Owner", criticality: "Medium" } })).json() as { asset: { id: string } }).asset.id,
+      path: (id) => `/api/v1/assets/${id}`, key: "asset", change: { notes: "Saved from the old version" },
+    },
+  ];
+
+  for (const c of linked) {
+    it(`GL-5: ${c.name}: a change of links alone is a new version, so a save from before it is refused`, async () => {
+      const id = await c.create();
+      const control = (await query<{ id: string }>("select id from controls order by ref limit 1 offset 2")).rows[0]!.id;
+      const seen = String((await read(c.path(id), c.key))["updated_at"]);
+      await pause();
+      const links = await save(c.path(id), { controlIds: [control] }, seen);
+      expect(links.statusCode, links.body).toBe(200);
+      const after = links.json() as Record<string, Record<string, unknown>>;
+      expect(String(after[c.key]!["updated_at"]), "the link change set a new version").not.toBe(seen);
+      const late = await save(c.path(id), c.change, seen);
+      expect(late.statusCode, late.body).toBe(409);
+    });
+  }
 });

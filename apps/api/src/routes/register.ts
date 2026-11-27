@@ -201,7 +201,10 @@ export function registerRoutes<T extends z.ZodRawShape>(spec: RegisterSpec<T>) {
 
         const entries = Object.entries(body).filter(([k]) => k in spec.columns);
         let row = before;
-        if (entries.length) {
+        // A change of links alone is a change too: it sets the new time, under
+        // the same version check (independent review, 27 Nov 2026).
+        const linksChanged = (spec.links ?? []).some((l) => (body as Record<string, unknown>)[l.input] !== undefined);
+        if (entries.length || linksChanged) {
           const sets = entries.map(([k], i) => `${spec.columns[k]} = $${i + 2}`);
           const params: unknown[] = [id, ...entries.map(([, v]) => v ?? null)];
           const same = versioned(request, before, sets, params);

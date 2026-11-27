@@ -175,7 +175,9 @@ export async function evidenceRoutes(app: FastifyInstance): Promise<void> {
     const updated = await withTransaction(async (tx) => {
       const entries = Object.entries(body).filter(([k]) => k in COLUMN);
       let row = before;
-      if (entries.length) {
+      // A change of links alone is a change too: it sets the new time, under
+      // the same version check (independent review, 27 Nov 2026).
+      if (entries.length || body.controlIds !== undefined) {
         const sets = entries.map(([k], i) => `${COLUMN[k]} = $${i + 2}`);
         const params: unknown[] = [id, ...entries.map(([, v]) => v ?? null)];
         const same = versioned(request, before, sets, params);
