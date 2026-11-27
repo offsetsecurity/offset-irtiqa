@@ -205,6 +205,17 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
         error: "Something this links to no longer exists. Refresh the page and try again.",
       });
     }
+    // The server's disk is full (the file system or the database ran out of
+    // room). Nothing was saved: the file being written is removed and SQLite
+    // rolls the change back. Say so in plain words, so the person knows it is
+    // not their mistake and whom to ask (go-live check, 27 Nov 2026).
+    const code = (err as { code?: unknown }).code;
+    if (code === "ENOSPC" || code === "EDQUOT" || code === "SQLITE_FULL") {
+      request.log.error({ err }, "the disk is full");
+      return reply.code(507).send({
+        error: "The server's disk is full, so this was not saved. Ask the person who runs the server to free some space, then try again.",
+      });
+    }
     request.log.error({ err }, "unhandled error");
     // Never leak internals to the client.
     return reply.code(500).send({ error: "Something went wrong." });
