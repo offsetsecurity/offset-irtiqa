@@ -21,7 +21,7 @@ export function startBodyTimer(request: FastifyRequest, ms: number): void {
   if (!hasBody(request)) return;
   const raw = request.raw;
   const timer = setTimeout(() => {
-    request.log.warn({ ms }, "the request body did not arrive in time; connection closed");
+    request.log.warn("the request body did not arrive in time; connection closed");
     raw.destroy();
   }, ms);
   timer.unref();
