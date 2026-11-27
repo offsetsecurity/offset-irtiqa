@@ -41,7 +41,10 @@ export async function copyBeforeUpgrade(dir: string, version: string): Promise<s
   const target = join(dir, "before-upgrade");
   await mkdir(target, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const path = join(target, `before-upgrade-${version.replace(/[^\w.-]/g, "_")}-${stamp}.db`);
+  // The time comes first, so the names sort oldest first: a version number
+  // does not sort as text ("0.10.0" comes before "0.9.0"), and pruning by
+  // name would then delete the copy just made (independent review, 27 Nov 2026).
+  const path = join(target, `before-upgrade-${stamp}-${version.replace(/[^\w.-]/g, "_")}.db`);
   db.prepare("vacuum into ?").run(path);
 
   const copies = (await readdir(target)).filter((n) => /^before-upgrade-.*\.db$/.test(n)).sort();

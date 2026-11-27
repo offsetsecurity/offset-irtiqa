@@ -55,7 +55,7 @@ maybe("upgrade safety", () => {
     oldVersion(files.length - 1);
     db.prepare("insert into settings (key, value) values ('probe', '\"kept\"')").run();
     const path = await copyBeforeUpgrade(dir, "1.2.3");
-    expect(path).toMatch(/before-upgrade-1\.2\.3-.*\.db$/);
+    expect(path).toMatch(/before-upgrade-.*-1\.2\.3\.db$/);
     expect(existsSync(path!)).toBe(true);
     const copy = new Database(path!, { readonly: true });
     try {
@@ -83,6 +83,19 @@ maybe("upgrade safety", () => {
       await new Promise((r) => setTimeout(r, 5));
     }
     expect(readdirSync(join(dir, "before-upgrade"))).toHaveLength(UPGRADE_COPIES_KEPT);
+  });
+
+  it("F-U1: the copy just made is kept when the version number grows a digit (0.9 to 0.10)", async () => {
+    let newest = "";
+    for (const v of ["0.9.7", "0.9.8", "0.9.9", "0.10.0"]) {
+      oldVersion(files.length - 1);
+      newest = (await copyBeforeUpgrade(dir, v))!;
+      await new Promise((r) => setTimeout(r, 5));
+    }
+    expect(existsSync(newest), "the newest copy was deleted at once").toBe(true);
+    const kept = readdirSync(join(dir, "before-upgrade"));
+    expect(kept).toHaveLength(UPGRADE_COPIES_KEPT);
+    expect(kept.some((n) => n.includes("0.9.7")), "the oldest copy should be the one removed").toBe(false);
   });
 
   it("F-U2: an older program refuses a newer database and changes nothing", async () => {
