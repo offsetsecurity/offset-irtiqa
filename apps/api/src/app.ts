@@ -171,8 +171,17 @@ export async function buildApp(options: BuildOptions = {}): Promise<FastifyInsta
     // temporary password read from somebody's inbox is never a way in to the
     // data itself.
     if (request.user?.mustChangePassword) {
-      const path = request.url.split("?")[0] ?? "";
-      if (path.startsWith("/api/") && !MUST_CHANGE_ALLOWED.has(path)) {
+      // The address the router actually matched, not the text the caller typed:
+      // "/%61pi/v1/..." reaches the same route as "/api/v1/..." but does not
+      // start with "/api/" (G4 of the go-live gate, 27 Nov 2026; F1 in Offset
+      // Assure). The raw and the decoded text are checked as well, so nothing
+      // slips between.
+      const raw = request.url.split("?")[0] ?? "";
+      let decoded = raw;
+      try { decoded = decodeURIComponent(raw); } catch { /* an undecodable address is judged as typed */ }
+      const matched = request.routeOptions?.url ?? "";
+      const isApi = [matched, raw, decoded].some((p) => p.startsWith("/api/"));
+      if (isApi && !MUST_CHANGE_ALLOWED.has(matched || decoded)) {
         throw new HttpError(403, "Choose a new password before continuing.");
       }
     }
